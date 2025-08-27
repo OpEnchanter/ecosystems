@@ -16,7 +16,7 @@ class basicRenderable() {
   public void Draw() {
     Rlgl.PushMatrix();
     Rlgl.Translatef(position.X, position.Y, position.Z);
-    Raylib.DrawModel(model, Vector3.Zero, 1.0f, Color.White);
+    Raylib.DrawModelWires(model, Vector3.Zero, 1.0f, Color.White);
     Rlgl.PopMatrix();
   }
 }
@@ -44,9 +44,9 @@ class organism : basicRenderable {
       speed = 1;
       eyesight = 1;
       canMove = true;
-      afraidOf = null;
-      foodSources = null;
-      hydrationSources = null;
+      afraidOf = new organismType[0];
+      foodSources = new organismType[0];
+      hydrationSources = new fluidType[0];
     }
   }
 
@@ -108,7 +108,7 @@ class Program() {
     Shader lit = Raylib.LoadShader("./shader/lit.vs", "./shader/lit.fs");
     
     // Initialize renderables
-    Model shadedSphere = primShapes.sphere(1, 20);
+    Model shadedSphere = primShapes.sphere(1, 100);
     unsafe { shadedSphere.Materials[0].Shader = lit; }
 
     basicRenderable[] renderables = new basicRenderable[] {

@@ -1,7 +1,7 @@
 #version 330
 
 in vec3 fragNormal;
-in vec3 fragTexCoord;
+in vec2 fragTexCoord;
 
 out vec4 finalColor;
 
