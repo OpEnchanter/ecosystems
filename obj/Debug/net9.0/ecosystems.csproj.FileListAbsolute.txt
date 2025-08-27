@@ -43,3 +43,4 @@ C:\Users\openc\OneDrive\Documents\GitHub\ecosystems\obj\Debug\net9.0\refint\ecos
 C:\Users\openc\OneDrive\Documents\GitHub\ecosystems\obj\Debug\net9.0\ecosystems.pdb
 C:\Users\openc\OneDrive\Documents\GitHub\ecosystems\obj\Debug\net9.0\ecosystems.genruntimeconfig.cache
 C:\Users\openc\OneDrive\Documents\GitHub\ecosystems\obj\Debug\net9.0\ref\ecosystems.dll
+C:\Users\openc\Documents\GitHub\ecosystems\obj\Debug\net9.0\ecosystems.sourcelink.json

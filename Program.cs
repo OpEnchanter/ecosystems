@@ -5,7 +5,11 @@ using System.Numerics;
 class primShapes() {
   public static Model sphere(float radius, int resolution) {
     return Raylib.LoadModelFromMesh(Raylib.GenMeshSphere(radius, resolution, resolution));
-  } 
+  }
+
+  public static Model plane(float X, float Y, int resX, int resY) {
+    return Raylib.LoadModelFromMesh(Raylib.GenMeshPlane(X, Y, resX, resY));
+  }
 }
 
 class basicRenderable() {
@@ -16,7 +20,7 @@ class basicRenderable() {
   public void Draw() {
     Rlgl.PushMatrix();
     Rlgl.Translatef(position.X, position.Y, position.Z);
-    Raylib.DrawModelWires(model, Vector3.Zero, 1.0f, Color.White);
+    Raylib.DrawModel(model, Vector3.Zero, 1.0f, Color.White);
     Rlgl.PopMatrix();
   }
 }
@@ -42,7 +46,7 @@ class organism : basicRenderable {
 
     public traitsStruct() {
       speed = 1;
-      eyesight = 1;
+      eyesight = 10;
       canMove = true;
       afraidOf = new organismType[0];
       foodSources = new organismType[0];
@@ -77,14 +81,14 @@ class organism : basicRenderable {
       }
     }
 
-    if (MathF.Sqrt(MathF.Pow(position.X - target.X, 2) + MathF.Pow(position.Y - target.Y, 2)) < 0.1) {
+    if (new Vector2(target.X - organismPosition.X, target.Y - organismPosition.Y).Length() < 1) {
       moving = false;
     }
 
     if (moving == true) {
       Vector2 moveDirection = new Vector2(target.X - organismPosition.X, target.Y - organismPosition.Y);
       moveDirection = new Vector2(moveDirection.X / moveDirection.Length(), moveDirection.Y / moveDirection.Length());
-      moveDirection *= traits.speed / 20;
+      moveDirection *= traits.speed / 20.0f;
       organismPosition += moveDirection;
       position = new Vector3(organismPosition.X, 0, organismPosition.Y);
     }
@@ -94,6 +98,7 @@ class organism : basicRenderable {
 class Program() {
   static void Main() {
     Raylib.InitWindow(640, 480, "Ecosystem Simulation");
+    Raylib.SetTargetFPS(60);
     
     // Initalize camera
     Camera3D camera = new Camera3D() {
@@ -111,11 +116,18 @@ class Program() {
     Model shadedSphere = primShapes.sphere(1, 100);
     unsafe { shadedSphere.Materials[0].Shader = lit; }
 
+    Model ground = primShapes.plane(10.0f, 10.0f, 1, 1);
+    unsafe { ground.Materials[0].Shader = lit; }
+
     basicRenderable[] renderables = new basicRenderable[] {
       new organism() {
         model = shadedSphere,
         position = new Vector3(0.0f, 0.0f, 5.0f)
       },
+      new basicRenderable() {
+        model = ground,
+        position = new Vector3(0.0f, -1.0f, 0.0f)
+      }
     };
 
     Raylib.DisableCursor();
