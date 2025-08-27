@@ -16,7 +16,7 @@ class basicRenderable() {
   public void Draw() {
     Rlgl.PushMatrix();
     Rlgl.Translatef(position.X, position.Y, position.Z);
-    Raylib.DrawModelWires(model, Vector3.Zero, 1.0f, Color.White);
+    Raylib.DrawModel(model, Vector3.Zero, 1.0f, Color.White);
     Rlgl.PopMatrix();
   }
 }
@@ -33,16 +33,16 @@ enum fluidType {
 
 class organism : basicRenderable {
   public struct traitsStruct {
-    public int speed;
-    public int eyesight;
+    public float speed;
+    public float eyesight;
     public bool canMove; // Use for plants
     public organismType[] afraidOf;
     public organismType[] foodSources;
     public fluidType[] hydrationSources;
 
     public traitsStruct() {
-      speed = 1;
-      eyesight = 1;
+      speed = 1.0f;
+      eyesight = 5.0f;
       canMove = true;
       afraidOf = new organismType[0];
       foodSources = new organismType[0];
@@ -51,8 +51,8 @@ class organism : basicRenderable {
   }
 
   public struct statsStruct {
-    public int food;
-    public int hydration;
+    public float food;
+    public float hydration;
 
     public statsStruct() {
       food = 10;
@@ -67,7 +67,7 @@ class organism : basicRenderable {
   public statsStruct stats = new statsStruct();
 
   public void Update() {
-    if (stats.food >= 3 && stats.hydration >= 3) {
+    if (stats.food <= 3.0f && stats.hydration <= 3.0f) {
       if (moving == false) {
         Random random = new Random();
         float angle = random.Next(-314, 314) / 100;
@@ -77,23 +77,26 @@ class organism : basicRenderable {
       }
     }
 
-    if (MathF.Sqrt(MathF.Pow(position.X - target.X, 2) + MathF.Pow(position.Y - target.Y, 2)) < 0.1) {
+    if (new Vector2(target.X - organismPosition.X, target.Y - organismPosition.Y).Length() < 0.5f) {
       moving = false;
     }
 
     if (moving == true) {
       Vector2 moveDirection = new Vector2(target.X - organismPosition.X, target.Y - organismPosition.Y);
       moveDirection = new Vector2(moveDirection.X / moveDirection.Length(), moveDirection.Y / moveDirection.Length());
-      moveDirection *= traits.speed / 20;
+      moveDirection *= traits.speed / 20.0f;
       organismPosition += moveDirection;
       position = new Vector3(organismPosition.X, 0, organismPosition.Y);
     }
+
+    stats.food -= 0.05f;
   }
 }
 
 class Program() {
   static void Main() {
     Raylib.InitWindow(640, 480, "Ecosystem Simulation");
+    Raylib.SetTargetFPS(60);
     
     // Initalize camera
     Camera3D camera = new Camera3D() {
