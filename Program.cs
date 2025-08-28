@@ -33,9 +33,10 @@ enum fluidType {
 
 class organism : basicRenderable {
   public struct traitsStruct {
+    public organismType type;
     public float speed;
     public float eyesight;
-    public bool canMove; // Use for plants
+    public bool sentient; // Use for plants
     public organismType[] afraidOf;
     public organismType[] foodSources;
     public fluidType[] hydrationSources;
@@ -43,7 +44,7 @@ class organism : basicRenderable {
     public traitsStruct() {
       speed = 1.0f;
       eyesight = 5.0f;
-      canMove = true;
+      sentient = true;
       afraidOf = new organismType[0];
       foodSources = new organismType[0];
       hydrationSources = new fluidType[0];
@@ -67,13 +68,26 @@ class organism : basicRenderable {
   public statsStruct stats = new statsStruct();
 
   public void Update() {
-    if (stats.food <= 3.0f && stats.hydration <= 3.0f) {
+    if (stats.food >= 3.0f && stats.hydration >= 3.0f) {
       if (moving == false) {
         Random random = new Random();
         float angle = random.Next(-314, 314) / 100;
         Vector2 localTarget = new Vector2(MathF.Cos(angle) * traits.eyesight, MathF.Sin(angle) * traits.eyesight);
         target = organismPosition + localTarget;
         moving = true;
+      }
+    } else {
+      if (stats.food <= 3.0f) {
+        if (moving == false) {
+          foreach (basicRenderable renderable in renderables) {
+            if (renderable is organism) {
+              if (traits.foodSources.Contains(renderable.traits.type)) {
+                target = new Vector2(renderable.X, renderable.Z);
+                moving = true;
+              }
+            }
+          }
+        }
       }
     }
 
@@ -90,6 +104,7 @@ class organism : basicRenderable {
     }
 
     stats.food -= 0.05f;
+    Console.WriteLine(stats.food);
   }
 }
 
@@ -114,11 +129,16 @@ class Program() {
     Model shadedSphere = primShapes.sphere(1, 100);
     unsafe { shadedSphere.Materials[0].Shader = lit; }
 
+    organism Rabbit = new organism() {
+      model = shadedSphere,
+      position = new Vector3(0.0f, 0.0f, 5.0f),
+    };
+
+    Rabbit.traits.foodSources = new organismType[] { organismType.Bush };
+    Rabbit.traits.hydrationSources = new fluidType[] { fluidType.Pond };
+
     basicRenderable[] renderables = new basicRenderable[] {
-      new organism() {
-        model = shadedSphere,
-        position = new Vector3(0.0f, 0.0f, 5.0f)
-      },
+      Rabbit
     };
 
     Raylib.DisableCursor();
