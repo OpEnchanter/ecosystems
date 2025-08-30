@@ -117,13 +117,15 @@ class organism : basicRenderable {
             }
           }
 
-          if (nearestFoodSourceDist < 0.5 && nearestFoodSource != null) {
+          if (nearestFoodSourceDist < 0.5 && nearestFoodSource != null)
+          {
             // Eat food
             nearestFoodSource.stats.health -= 1.0f;
             stats.food = 10.0f;
           }
 
-          if (nearestFoodSource != null) {
+          if (nearestFoodSource != null)
+          {
             // Go to food source
             target = new Vector2(nearestFoodSource.position.X, nearestFoodSource.position.Z);
             moving = true;
@@ -140,6 +142,18 @@ class organism : basicRenderable {
       }
 
       stats.food -= 0.05f;
+
+      if (stats.food <= 0.0f)
+      {
+        stats.food = 0.0f;
+        stats.health -= 0.1f;
+      }
+
+      if (stats.hydration <= 0.0f)
+      {
+        stats.hydration = 0.0f;
+        stats.health -= 0.1f;
+      }
     }
 
     if (new Vector2(target.X - organismPosition.X, target.Y - organismPosition.Y).Length() < 0.5f)
