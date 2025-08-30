@@ -72,44 +72,43 @@ class organism : basicRenderable {
   public statsStruct stats = new statsStruct();
 
   public void Update() {
-    if (traits.canMove)
-    {
+    if (traits.canMove) {
       if (stats.food >= 3.0f && stats.hydration >= 3.0f)
-    {
-      if (moving == false)
       {
-        Random random = new Random();
-        float angle = random.Next(-314, 314) / 100;
-        Vector2 localTarget = new Vector2(MathF.Cos(angle) * traits.eyesight, MathF.Sin(angle) * traits.eyesight);
-        target = organismPosition + localTarget;
-        moving = true;
-      }
-    }
-    else
-    {
-      if (stats.food < 3.0f)
-      {
-        List<organism> visibleFoodSources = new List<organism>();
-        foreach (basicRenderable renderable in Program.renderables)
+        if (moving == false)
         {
-          if (renderable is organism)
+          Random random = new Random();
+          float angle = random.Next(-314, 314) / 100;
+          Vector2 localTarget = new Vector2(MathF.Cos(angle) * traits.eyesight, MathF.Sin(angle) * traits.eyesight);
+          target = organismPosition + localTarget;
+          moving = true;
+        }
+      }
+      else
+      {
+        if (stats.food < 3.0f)
+        {
+          List<organism> visibleFoodSources = new List<organism>();
+          foreach (basicRenderable renderable in Program.renderables)
           {
-            organism renderableOrganism = (organism)renderable;
-            if (Array.Exists(traits.foodSources, element => element == renderableOrganism.traits.oType))
+            if (renderable is organism)
             {
-              if (new Vector2(renderableOrganism.position.X - organismPosition.X, renderableOrganism.position.Z - organismPosition.Y).Length() < traits.eyesight)
+              organism renderableOrganism = (organism)renderable;
+              if (Array.Exists(traits.foodSources, element => element == renderableOrganism.traits.oType))
               {
-                visibleFoodSources.Add(renderableOrganism);
+                if (new Vector2(renderableOrganism.position.X - organismPosition.X, renderableOrganism.position.Z - organismPosition.Y).Length() < traits.eyesight)
+                {
+                  visibleFoodSources.Add(renderableOrganism);
+                }
               }
             }
           }
         }
+        if (stats.hydration < 3.0f)
+        {
+          // Find water sources
+        }
       }
-      if (stats.hydration < 3.0f)
-      {
-        // Find water sources
-      }
-    }
     }
 
     if (new Vector2(target.X - organismPosition.X, target.Y - organismPosition.Y).Length() < 0.5f) {
