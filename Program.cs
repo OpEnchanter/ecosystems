@@ -5,7 +5,7 @@ using System.Numerics;
 class primShapes() {
   public static Model sphere(float radius, int resolution) {
     return Raylib.LoadModelFromMesh(Raylib.GenMeshSphere(radius, resolution, resolution));
-  } 
+  }
 }
 
 class basicRenderable() {
