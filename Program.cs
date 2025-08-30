@@ -154,6 +154,11 @@ class organism : basicRenderable {
         stats.hydration = 0.0f;
         stats.health -= 0.1f;
       }
+
+      if (stats.health <= 0)
+      {
+        Program.renderables.Remove(this);
+      }
     }
 
     if (new Vector2(target.X - organismPosition.X, target.Y - organismPosition.Y).Length() < 0.5f)
@@ -174,7 +179,7 @@ class organism : basicRenderable {
 
 class Program() {
 
-  public static basicRenderable[] renderables = new basicRenderable[0];
+  public static List<basicRenderable> renderables = new List<basicRenderable>();
   static void Main()
   {
     Raylib.InitWindow(640, 480, "Ecosystem Simulation");
@@ -231,7 +236,7 @@ class Program() {
     bush.traits.oType = organismType.Bush;
     bush.traits.canMove = false;
 
-    renderables = new basicRenderable[] {
+    renderables = new List<basicRenderable> {
       rabbit,
       bush
     };
