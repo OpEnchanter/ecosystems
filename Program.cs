@@ -85,7 +85,7 @@ class organism : basicRenderable {
 
   public void Update()
   {
-    if (traits.canMove)
+    if (traits.canMove == true)
     {
       if (stats.food >= 3.0f && stats.hydration >= 3.0f)
       {
@@ -195,7 +195,8 @@ class Program() {
     bush.traits.canMove = false;
 
     renderables = new basicRenderable[] {
-      rabbit
+      rabbit,
+      bush
     };
 
     Raylib.DisableCursor();
