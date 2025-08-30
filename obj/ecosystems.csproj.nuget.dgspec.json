@@ -1,25 +1,27 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\openc\\OneDrive\\Documents\\GitHub\\ecosystems\\ecosystems.csproj": {}
+    "C:\\Users\\openc\\Documents\\GitHub\\ecosystems\\ecosystems.csproj": {}
   },
   "projects": {
-    "C:\\Users\\openc\\OneDrive\\Documents\\GitHub\\ecosystems\\ecosystems.csproj": {
+    "C:\\Users\\openc\\Documents\\GitHub\\ecosystems\\ecosystems.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\openc\\OneDrive\\Documents\\GitHub\\ecosystems\\ecosystems.csproj",
+        "projectUniqueName": "C:\\Users\\openc\\Documents\\GitHub\\ecosystems\\ecosystems.csproj",
         "projectName": "ecosystems",
-        "projectPath": "C:\\Users\\openc\\OneDrive\\Documents\\GitHub\\ecosystems\\ecosystems.csproj",
+        "projectPath": "C:\\Users\\openc\\Documents\\GitHub\\ecosystems\\ecosystems.csproj",
         "packagesPath": "C:\\Users\\openc\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\openc\\OneDrive\\Documents\\GitHub\\ecosystems\\obj\\",
+        "outputPath": "C:\\Users\\openc\\Documents\\GitHub\\ecosystems\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\openc\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "C:\\Users\\openc\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
           "net9.0"
         ],
         "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {

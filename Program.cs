@@ -58,10 +58,13 @@ class organism : basicRenderable {
   public struct statsStruct {
     public float food;
     public float hydration;
+    public float health;
 
-    public statsStruct() {
-      food = 10;
-      hydration = 10;
+    public statsStruct()
+    {
+      food = 10.0f;
+      hydration = 10.0f;
+      health = 10.0f;
     }
   }
 
@@ -114,8 +117,13 @@ class organism : basicRenderable {
             }
           }
 
-          if (nearestFoodSource != null)
-          {
+          if (nearestFoodSourceDist < 0.5 && nearestFoodSource != null) {
+            // Eat food
+            nearestFoodSource.stats.health -= 1.0f;
+            stats.food = 10.0f;
+          }
+
+          if (nearestFoodSource != null) {
             // Go to food source
             target = new Vector2(nearestFoodSource.position.X, nearestFoodSource.position.Z);
             moving = true;
@@ -130,6 +138,8 @@ class organism : basicRenderable {
           // Find water sources
         }
       }
+
+      stats.food -= 0.05f;
     }
 
     if (new Vector2(target.X - organismPosition.X, target.Y - organismPosition.Y).Length() < 0.5f)
@@ -145,8 +155,6 @@ class organism : basicRenderable {
       organismPosition += moveDirection;
       position = new Vector3(organismPosition.X, 0, organismPosition.Y);
     }
-
-    stats.food -= 0.05f;
   }
 }
 
