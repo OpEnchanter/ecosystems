@@ -172,12 +172,18 @@ class Program() {
     Shader lit = Raylib.LoadShader("./shader/lit.vs", "./shader/lit.fs");
 
     // Initialize renderables
-    Model shadedSphere = primShapes.sphere(1, 100);
-    unsafe { shadedSphere.Materials[0].Shader = lit; }
+    Image brownImage = Raylib.GenImageColor(10, 10, Color.Red);
+    Texture2D brownTexture = Raylib.LoadTextureFromImage(brownImage);
+
+    Model rabbitModel = primShapes.sphere(1, 12);
+    unsafe {
+      rabbitModel.Materials[0].Maps[(int)MaterialMapIndex.Albedo].Texture = brownTexture;
+      rabbitModel.Materials[0].Shader = lit;
+    }
 
     organism rabbit = new organism()
     {
-      model = shadedSphere,
+      model = rabbitModel,
       position = new Vector3(0.0f, 0.0f, 5.0f)
     };
 
@@ -185,9 +191,18 @@ class Program() {
     rabbit.traits.foodSources = new organismType[] { organismType.Bush };
     rabbit.traits.hydrationSources = new fluidType[] { fluidType.Pond };
 
+    Image greenImage = Raylib.GenImageColor(10, 10, Color.Green);
+    Texture2D greenTexture = Raylib.LoadTextureFromImage(greenImage);
+
+    Model bushModel = primShapes.sphere(1, 12);
+    unsafe {
+      bushModel.Materials[0].Maps[(int)MaterialMapIndex.Albedo].Texture = greenTexture;
+      bushModel.Materials[0].Shader = lit;
+    }
+
     organism bush = new organism()
     {
-      model = shadedSphere,
+      model = bushModel,
       position = new Vector3(0.0f, 0.0f, 0.0f),
     };
 
@@ -211,6 +226,8 @@ class Program() {
 
       // 3D
       Raylib.BeginMode3D(camera);
+
+      Raylib.DrawGrid(100, 1);
 
       // Update cycle
       foreach (basicRenderable renderable in renderables)
