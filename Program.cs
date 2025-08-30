@@ -71,24 +71,32 @@ class organism : basicRenderable {
   public traitsStruct traits = new traitsStruct();
   public statsStruct stats = new statsStruct();
 
-  public void Update() {
-    if (traits.canMove) {
+  private void wander()
+  {
+    if (moving == false)
+    {
+      Random random = new Random();
+      float angle = random.Next(-314, 314) / 100;
+      Vector2 localTarget = new Vector2(MathF.Cos(angle) * traits.eyesight, MathF.Sin(angle) * traits.eyesight);
+      target = organismPosition + localTarget;
+      moving = true;
+    }
+  }
+
+  public void Update()
+  {
+    if (traits.canMove)
+    {
       if (stats.food >= 3.0f && stats.hydration >= 3.0f)
       {
-        if (moving == false)
-        {
-          Random random = new Random();
-          float angle = random.Next(-314, 314) / 100;
-          Vector2 localTarget = new Vector2(MathF.Cos(angle) * traits.eyesight, MathF.Sin(angle) * traits.eyesight);
-          target = organismPosition + localTarget;
-          moving = true;
-        }
+        wander();
       }
       else
       {
         if (stats.food < 3.0f)
         {
-          List<organism> visibleFoodSources = new List<organism>();
+          float nearestFoodSourceDist = float.PositiveInfinity;
+          organism nearestFoodSource = null;
           foreach (basicRenderable renderable in Program.renderables)
           {
             if (renderable is organism)
@@ -96,12 +104,25 @@ class organism : basicRenderable {
               organism renderableOrganism = (organism)renderable;
               if (Array.Exists(traits.foodSources, element => element == renderableOrganism.traits.oType))
               {
-                if (new Vector2(renderableOrganism.position.X - organismPosition.X, renderableOrganism.position.Z - organismPosition.Y).Length() < traits.eyesight)
+                float distance = new Vector2(renderableOrganism.position.X - organismPosition.X, renderableOrganism.position.Z - organismPosition.Y).Length();
+                if (distance < traits.eyesight && distance < nearestFoodSourceDist)
                 {
-                  visibleFoodSources.Add(renderableOrganism);
+                  nearestFoodSourceDist = distance;
+                  nearestFoodSource = renderableOrganism;
                 }
               }
             }
+          }
+
+          if (nearestFoodSource != null)
+          {
+            // Go to food source
+            target = new Vector2(nearestFoodSource.position.X, nearestFoodSource.position.Z);
+            moving = true;
+          }
+          else
+          {
+            wander();
           }
         }
         if (stats.hydration < 3.0f)
@@ -111,16 +132,18 @@ class organism : basicRenderable {
       }
     }
 
-    if (new Vector2(target.X - organismPosition.X, target.Y - organismPosition.Y).Length() < 0.5f) {
+    if (new Vector2(target.X - organismPosition.X, target.Y - organismPosition.Y).Length() < 0.5f)
+    {
       moving = false;
     }
 
-    if (moving == true) {
-        Vector2 moveDirection = new Vector2(target.X - organismPosition.X, target.Y - organismPosition.Y);
-        moveDirection = new Vector2(moveDirection.X / moveDirection.Length(), moveDirection.Y / moveDirection.Length());
-        moveDirection *= traits.speed / 20.0f;
-        organismPosition += moveDirection;
-        position = new Vector3(organismPosition.X, 0, organismPosition.Y);
+    if (moving == true)
+    {
+      Vector2 moveDirection = new Vector2(target.X - organismPosition.X, target.Y - organismPosition.Y);
+      moveDirection = new Vector2(moveDirection.X / moveDirection.Length(), moveDirection.Y / moveDirection.Length());
+      moveDirection *= traits.speed / 20.0f;
+      organismPosition += moveDirection;
+      position = new Vector3(organismPosition.X, 0, organismPosition.Y);
     }
 
     stats.food -= 0.05f;
