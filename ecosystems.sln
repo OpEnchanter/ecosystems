@@ -1,0 +1,24 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.2.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ecosystems", "ecosystems.csproj", "{6C56A018-C3FB-431A-2F40-274D55071E82}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6C56A018-C3FB-431A-2F40-274D55071E82}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6C56A018-C3FB-431A-2F40-274D55071E82}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6C56A018-C3FB-431A-2F40-274D55071E82}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6C56A018-C3FB-431A-2F40-274D55071E82}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {94596FEE-E6BF-4366-985F-0DD5A7083D43}
+	EndGlobalSection
+EndGlobal

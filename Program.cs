@@ -22,6 +22,7 @@ class basicRenderable() {
 }
 
 enum organismType {
+  None,
   Bush,
   Rabbit,
   Fox
@@ -33,21 +34,24 @@ enum fluidType {
 
 class organism : basicRenderable {
   public struct traitsStruct {
-    public organismType type;
     public float speed;
     public float eyesight;
-    public bool sentient; // Use for plants
+    public bool canMove; // Use for plants
     public organismType[] afraidOf;
     public organismType[] foodSources;
     public fluidType[] hydrationSources;
 
-    public traitsStruct() {
+    public organismType oType;
+
+    public traitsStruct()
+    {
       speed = 1.0f;
       eyesight = 5.0f;
-      sentient = true;
+      canMove = true;
       afraidOf = new organismType[0];
       foodSources = new organismType[0];
       hydrationSources = new fluidType[0];
+      oType = organismType.None;
     }
   }
 
@@ -68,27 +72,44 @@ class organism : basicRenderable {
   public statsStruct stats = new statsStruct();
 
   public void Update() {
-    if (stats.food >= 3.0f && stats.hydration >= 3.0f) {
-      if (moving == false) {
+    if (traits.canMove)
+    {
+      if (stats.food >= 3.0f && stats.hydration >= 3.0f)
+    {
+      if (moving == false)
+      {
         Random random = new Random();
         float angle = random.Next(-314, 314) / 100;
         Vector2 localTarget = new Vector2(MathF.Cos(angle) * traits.eyesight, MathF.Sin(angle) * traits.eyesight);
         target = organismPosition + localTarget;
         moving = true;
       }
-    } else {
-      if (stats.food <= 3.0f) {
-        if (moving == false) {
-          foreach (basicRenderable renderable in renderables) {
-            if (renderable is organism) {
-              if (traits.foodSources.Contains(renderable.traits.type)) {
-                target = new Vector2(renderable.X, renderable.Z);
-                moving = true;
+    }
+    else
+    {
+      if (stats.food < 3.0f)
+      {
+        List<organism> visibleFoodSources = new List<organism>();
+        foreach (basicRenderable renderable in Program.renderables)
+        {
+          if (renderable is organism)
+          {
+            organism renderableOrganism = (organism)renderable;
+            if (Array.Exists(traits.foodSources, element => element == renderableOrganism.traits.oType))
+            {
+              if (new Vector2(renderableOrganism.position.X - organismPosition.X, renderableOrganism.position.Z - organismPosition.Y).Length() < traits.eyesight)
+              {
+                visibleFoodSources.Add(renderableOrganism);
               }
             }
           }
         }
       }
+      if (stats.hydration < 3.0f)
+      {
+        // Find water sources
+      }
+    }
     }
 
     if (new Vector2(target.X - organismPosition.X, target.Y - organismPosition.Y).Length() < 0.5f) {
@@ -96,25 +117,28 @@ class organism : basicRenderable {
     }
 
     if (moving == true) {
-      Vector2 moveDirection = new Vector2(target.X - organismPosition.X, target.Y - organismPosition.Y);
-      moveDirection = new Vector2(moveDirection.X / moveDirection.Length(), moveDirection.Y / moveDirection.Length());
-      moveDirection *= traits.speed / 20.0f;
-      organismPosition += moveDirection;
-      position = new Vector3(organismPosition.X, 0, organismPosition.Y);
+        Vector2 moveDirection = new Vector2(target.X - organismPosition.X, target.Y - organismPosition.Y);
+        moveDirection = new Vector2(moveDirection.X / moveDirection.Length(), moveDirection.Y / moveDirection.Length());
+        moveDirection *= traits.speed / 20.0f;
+        organismPosition += moveDirection;
+        position = new Vector3(organismPosition.X, 0, organismPosition.Y);
     }
 
     stats.food -= 0.05f;
-    Console.WriteLine(stats.food);
   }
 }
 
 class Program() {
-  static void Main() {
+
+  public static basicRenderable[] renderables = new basicRenderable[0];
+  static void Main()
+  {
     Raylib.InitWindow(640, 480, "Ecosystem Simulation");
     Raylib.SetTargetFPS(60);
-    
+
     // Initalize camera
-    Camera3D camera = new Camera3D() {
+    Camera3D camera = new Camera3D()
+    {
       Position = Vector3.Zero,
       Target = new Vector3(0.0f, 0.0f, 1.0f),
       Up = new Vector3(0.0f, 1.0f, 0.0f),
@@ -124,40 +148,54 @@ class Program() {
 
     // Initialize shaders
     Shader lit = Raylib.LoadShader("./shader/lit.vs", "./shader/lit.fs");
-    
+
     // Initialize renderables
     Model shadedSphere = primShapes.sphere(1, 100);
     unsafe { shadedSphere.Materials[0].Shader = lit; }
 
-    organism Rabbit = new organism() {
+    organism rabbit = new organism()
+    {
       model = shadedSphere,
-      position = new Vector3(0.0f, 0.0f, 5.0f),
+      position = new Vector3(0.0f, 0.0f, 5.0f)
     };
 
-    Rabbit.traits.foodSources = new organismType[] { organismType.Bush };
-    Rabbit.traits.hydrationSources = new fluidType[] { fluidType.Pond };
+    rabbit.traits.oType = organismType.Rabbit;
+    rabbit.traits.foodSources = new organismType[] { organismType.Bush };
+    rabbit.traits.hydrationSources = new fluidType[] { fluidType.Pond };
 
-    basicRenderable[] renderables = new basicRenderable[] {
-      Rabbit
+    organism bush = new organism()
+    {
+      model = shadedSphere,
+      position = new Vector3(0.0f, 0.0f, 0.0f),
+    };
+
+    bush.traits.oType = organismType.Bush;
+    bush.traits.canMove = false;
+
+    renderables = new basicRenderable[] {
+      rabbit
     };
 
     Raylib.DisableCursor();
 
-    while (!Raylib.WindowShouldClose()) {
+    while (!Raylib.WindowShouldClose())
+    {
       // Clear frame and clear for drawing
       Raylib.BeginDrawing();
       Raylib.ClearBackground(Color.RayWhite);
-      
+
       unsafe { Raylib.UpdateCamera(&camera, CameraMode.Free); } // Update camera
 
       // 3D
       Raylib.BeginMode3D(camera);
-      
+
       // Update cycle
-      foreach (basicRenderable renderable in renderables) {
+      foreach (basicRenderable renderable in renderables)
+      {
         renderable.Draw();
-        if (renderable is organism) {
-          organism renderableOrganism = (organism) renderable;
+        if (renderable is organism)
+        {
+          organism renderableOrganism = (organism)renderable;
           renderableOrganism.Update();
         }
       }
