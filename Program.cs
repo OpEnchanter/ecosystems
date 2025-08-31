@@ -78,8 +78,7 @@ class organism : basicRenderable {
   {
     if (moving == false)
     {
-      Random random = new Random();
-      float angle = random.Next(-314, 314) / 100;
+      float angle = Program.random.Next(-314, 314) / 100;
       Vector2 localTarget = new Vector2(MathF.Cos(angle) * traits.eyesight, MathF.Sin(angle) * traits.eyesight);
       target = organismPosition + localTarget;
       moving = true;
@@ -175,12 +174,19 @@ class organism : basicRenderable {
       position = new Vector3(organismPosition.X, 0, organismPosition.Y);
     }
   }
+
+  public organism Clone()
+  {
+    return (organism) this.MemberwiseClone();
+  }
 }
 
 class Program() {
 
   public static List<basicRenderable> renderables = new List<basicRenderable>();
   public static List<basicRenderable> renderablesToRemove = new List<basicRenderable>();
+
+  public static Random random = new Random();
 
   static void Main()
   {
@@ -241,8 +247,11 @@ class Program() {
     bush.traits.canMove = false;
 
     renderables = new List<basicRenderable> {
-      rabbit,
-      //bush
+      rabbit.Clone(),
+      rabbit.Clone(),
+      rabbit.Clone(),
+      rabbit.Clone(),
+      bush
     };
 
     Raylib.DisableCursor();
