@@ -171,8 +171,9 @@ class organism : basicRenderable {
       moveDirection = new Vector2(moveDirection.X / moveDirection.Length(), moveDirection.Y / moveDirection.Length());
       moveDirection *= traits.speed / 20.0f;
       organismPosition += moveDirection;
-      position = new Vector3(organismPosition.X, 0, organismPosition.Y);
     }
+
+    position = new Vector3(organismPosition.X, 0, organismPosition.Y);
   }
 
   public organism Clone()
@@ -246,13 +247,21 @@ class Program() {
     bush.traits.oType = organismType.Bush;
     bush.traits.canMove = false;
 
-    renderables = new List<basicRenderable> {
-      rabbit.Clone(),
-      rabbit.Clone(),
-      rabbit.Clone(),
-      rabbit.Clone(),
-      bush
-    };
+    // Add rabbits
+    for (int i = 0; i < 40; i++)
+    {
+      organism rabbitClone = rabbit.Clone();
+      rabbitClone.organismPosition = new Vector2(random.Next(-50, 50), random.Next(-50, 50));
+      renderables.Add(rabbitClone);
+    }
+    
+    // Add bushes
+    for (int i = 0; i < 80; i++)
+    {
+      organism bushClone = bush.Clone();
+      bushClone.organismPosition = new Vector2(random.Next(-50, 50), random.Next(-50, 50));
+      renderables.Add(bushClone);
+    }
 
     Raylib.DisableCursor();
 
