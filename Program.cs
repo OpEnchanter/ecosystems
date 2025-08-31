@@ -1,8 +1,5 @@
-﻿using RayGUI_cs;
-using Raylib_cs;
+﻿using ZeroElectric.Vinculum;
 using System.Numerics;
-using RayGUI_cs;
-using System.Reflection.Metadata;
 
 // Quick primatives
 class primShapes()
@@ -18,16 +15,18 @@ class primShapes()
   }
 }
 
-class basicRenderable() {
+class basicRenderable()
+{
   public Model model;
   public Vector3 position = Vector3.Zero;
   public Vector3 eulerRotation = Vector3.Zero;
 
-  public void Draw() {
-    Rlgl.PushMatrix();
-    Rlgl.Translatef(position.X, position.Y, position.Z);
-    Raylib.DrawModel(model, Vector3.Zero, 1.0f, Color.White);
-    Rlgl.PopMatrix();
+  public void Draw()
+  {
+    RlGl.rlPushMatrix();
+    RlGl.rlTranslatef(position.X, position.Y, position.Z);
+    Raylib.DrawModel(model, Vector3.Zero, 1.0f, Raylib.RED);
+    RlGl.rlPopMatrix();
   }
 }
 
@@ -248,11 +247,11 @@ class Program()
     // Initalize camera
     Camera3D camera = new Camera3D()
     {
-      Position = Vector3.Zero,
-      Target = new Vector3(0.0f, 0.0f, 1.0f),
-      Up = new Vector3(0.0f, 1.0f, 0.0f),
-      FovY = 90.0f,
-      Projection = CameraProjection.Perspective
+      position = Vector3.Zero,
+      target = new Vector3(0.0f, 0.0f, 1.0f),
+      up = new Vector3(0.0f, 1.0f, 0.0f),
+      fovy = 90.0f,
+      projection = (int) CameraProjection.CAMERA_PERSPECTIVE
     };
 
     // Initialize shaders
@@ -261,14 +260,14 @@ class Program()
     // Initialize renderables
 
     // Rabbit organism
-    Image brownImage = Raylib.GenImageColor(10, 10, Color.Brown);
-    Texture2D brownTexture = Raylib.LoadTextureFromImage(brownImage);
+    Image brownImage = Raylib.GenImageColor(10, 10, Raylib.BROWN);
+    Texture browntexture = Raylib.LoadTextureFromImage(brownImage);
 
     Model rabbitModel = primShapes.sphere(0.5f, 12);
     unsafe
     {
-      rabbitModel.Materials[0].Maps[(int)MaterialMapIndex.Albedo].Texture = brownTexture;
-      rabbitModel.Materials[0].Shader = lit;
+      rabbitModel.materials[0].maps[(int)MaterialMapIndex.MATERIAL_MAP_ALBEDO].texture = browntexture;
+      rabbitModel.materials[0].shader = lit;
     }
 
     organism rabbit = new organism()
@@ -284,14 +283,14 @@ class Program()
 
 
     // Fox organism
-    Image orangeImage = Raylib.GenImageColor(10, 10, Color.Orange);
-    Texture2D orangeTexture = Raylib.LoadTextureFromImage(orangeImage);
+    Image orangeImage = Raylib.GenImageColor(10, 10, Raylib.ORANGE);
+    Texture orangetexture = Raylib.LoadTextureFromImage(orangeImage);
 
     Model foxModel = primShapes.sphere(0.5f, 12);
     unsafe
     {
-      foxModel.Materials[0].Maps[(int)MaterialMapIndex.Albedo].Texture = orangeTexture;
-      foxModel.Materials[0].Shader = lit;
+      foxModel.materials[0].maps[(int)MaterialMapIndex.MATERIAL_MAP_ALBEDO].texture = orangetexture;
+      foxModel.materials[0].shader = lit;
     }
 
     organism fox = new organism()
@@ -307,14 +306,14 @@ class Program()
 
 
     // Bush organism
-    Image greenImage = Raylib.GenImageColor(10, 10, Color.Green);
-    Texture2D greenTexture = Raylib.LoadTextureFromImage(greenImage);
+    Image greenImage = Raylib.GenImageColor(10, 10, Raylib.GREEN);
+    Texture greentexture = Raylib.LoadTextureFromImage(greenImage);
 
     Model bushModel = primShapes.sphere(1, 12);
     unsafe
     {
-      bushModel.Materials[0].Maps[(int)MaterialMapIndex.Albedo].Texture = greenTexture;
-      bushModel.Materials[0].Shader = lit;
+      bushModel.materials[0].maps[(int)MaterialMapIndex.MATERIAL_MAP_ALBEDO].texture = greentexture;
+      bushModel.materials[0].shader = lit;
     }
 
     organism bush = new organism()
@@ -327,14 +326,14 @@ class Program()
     bush.traits.canMove = false;
 
     // Pond
-    Image blueImage = Raylib.GenImageColor(10, 10, Color.Blue);
-    Texture2D blueTexture = Raylib.LoadTextureFromImage(blueImage);
+    Image blueImage = Raylib.GenImageColor(10, 10, Raylib.BLUE);
+    Texture bluetexture = Raylib.LoadTextureFromImage(blueImage);
 
     Model pondModel = primShapes.plane(2, 2, 1, 1);
     unsafe
     {
-      pondModel.Materials[0].Maps[(int)MaterialMapIndex.Albedo].Texture = blueTexture;
-      pondModel.Materials[0].Shader = lit;
+      pondModel.materials[0].maps[(int)MaterialMapIndex.MATERIAL_MAP_ALBEDO].texture = bluetexture;
+      pondModel.materials[0].shader = lit;
     }
 
     fluidSource pond = new fluidSource()
@@ -375,8 +374,6 @@ class Program()
       renderables.Add(pondClone);
     }
 
-    Raylib.DisableCursor();
-
     bool menuOpen = false;
 
     Font defaultFont = Raylib.GetFontDefault();
@@ -385,39 +382,21 @@ class Program()
     {
       { 16, defaultFont }
     };
-
-    RayGUI.LoadGUI(fonts);
-    
-    Button btn = new Button(10, 10, 48, 18, "Test");
-    btn.Type = ButtonType.Custom;
-    btn.BaseColor = Color.LightGray;
-    btn.HoverColor = Color.DarkGray;
-    btn.Event = () => { Console.WriteLine("Clicked!"); };
-
-    Image backgroundImage = Raylib.GenImageColor(128, 480, Color.Black);
-    Texture2D background = Raylib.LoadTextureFromImage(backgroundImage);
-    Panel panel = new Panel(0, 0, background);
-
-    Textbox textbox = new Textbox(10, 30, 96, 18, "Type...");
-    textbox.BaseColor = Color.LightGray;
-    textbox.HoverColor = Color.Black;
-    textbox.TextColor = Color.Black;
-
-    GuiContainer container = new GuiContainer();
-    container.Add("bg", panel);
-    container.Add("button", btn);
-    container.Add("text", textbox);
         
+    Raylib.DisableCursor();
+
+    sbyte guiText = new sbyte();
+    bool editing = false;
 
     while (!Raylib.WindowShouldClose())
     {
       // Clear frame and clear for drawing
       Raylib.BeginDrawing();
-      Raylib.ClearBackground(Color.RayWhite);
+      Raylib.ClearBackground(Raylib.RAYWHITE);
 
       if (!menuOpen)
       {
-        unsafe { Raylib.UpdateCamera(&camera, CameraMode.Free); } // Update camera 
+        Raylib.UpdateCamera(ref camera, CameraMode.CAMERA_FREE); // Update camera 
       }
 
       // 3D
@@ -447,7 +426,7 @@ class Program()
       Raylib.EndMode3D();
 
       // Client
-      if (Raylib.IsKeyPressed(KeyboardKey.Tab))
+      if (Raylib.IsKeyPressed(KeyboardKey.KEY_TAB))
       {
         menuOpen = !menuOpen;
 
@@ -463,7 +442,23 @@ class Program()
 
       if (menuOpen)
       {
-        container.Draw();
+        Raylib.DrawRectangle(0, 0, 128, 480, Raylib.BLACK);
+        if (RayGui.GuiButton(new Rectangle(10, 30, 96, 18), "Write to console") == 1)
+        {
+          unsafe { Console.WriteLine(new string(&guiText)); }
+        }
+
+        unsafe
+        {
+          if (editing && Raylib.IsMouseButtonPressed(MouseButton.MOUSE_BUTTON_LEFT))
+          {
+            editing = false;
+          }
+          if (RayGui.GuiTextBox(new Rectangle(10, 10, 96, 18), &guiText, 16, editing) == 1)
+          {
+            editing = true;
+          }
+        }
       }
 
       Raylib.EndDrawing(); // End frame
