@@ -17,7 +17,6 @@ This project is a simple ecosystem simulation written in C# using [Raylib-cs](ht
 ## Controls
 
 - **Mouse:** Move the camera (free camera mode).
-- **ESC:** Close the simulation window.
 - **Tab:** Open the menu
 - **W,A,S,D:** Move
 - **Left Control:** Descend

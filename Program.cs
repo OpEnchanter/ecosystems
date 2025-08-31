@@ -384,6 +384,7 @@ class Program()
     };
         
     Raylib.DisableCursor();
+    Raylib.SetExitKey(0);
 
     sbyte guiText = new sbyte();
     bool editing = false;
@@ -458,6 +459,11 @@ class Program()
           {
             editing = true;
           }
+        }
+
+        if (RayGui.GuiButton(new Rectangle(10, 450, 96, 18), "Exit") == 1)
+        {
+          Raylib.CloseWindow();
         }
       }
 
