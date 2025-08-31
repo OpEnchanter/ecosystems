@@ -157,7 +157,7 @@ class organism : basicRenderable {
 
       if (stats.health <= 0)
       {
-        Program.renderables.Remove(this);
+        Program.renderablesToRemove.Add(this);
       }
     }
 
@@ -180,6 +180,8 @@ class organism : basicRenderable {
 class Program() {
 
   public static List<basicRenderable> renderables = new List<basicRenderable>();
+  public static List<basicRenderable> renderablesToRemove = new List<basicRenderable>();
+
   static void Main()
   {
     Raylib.InitWindow(640, 480, "Ecosystem Simulation");
@@ -203,7 +205,8 @@ class Program() {
     Texture2D brownTexture = Raylib.LoadTextureFromImage(brownImage);
 
     Model rabbitModel = primShapes.sphere(1, 12);
-    unsafe {
+    unsafe
+    {
       rabbitModel.Materials[0].Maps[(int)MaterialMapIndex.Albedo].Texture = brownTexture;
       rabbitModel.Materials[0].Shader = lit;
     }
@@ -222,7 +225,8 @@ class Program() {
     Texture2D greenTexture = Raylib.LoadTextureFromImage(greenImage);
 
     Model bushModel = primShapes.sphere(1, 12);
-    unsafe {
+    unsafe
+    {
       bushModel.Materials[0].Maps[(int)MaterialMapIndex.Albedo].Texture = greenTexture;
       bushModel.Materials[0].Shader = lit;
     }
@@ -238,7 +242,7 @@ class Program() {
 
     renderables = new List<basicRenderable> {
       rabbit,
-      bush
+      //bush
     };
 
     Raylib.DisableCursor();
@@ -265,6 +269,15 @@ class Program() {
           organism renderableOrganism = (organism)renderable;
           renderableOrganism.Update();
         }
+      }
+
+      if (renderablesToRemove.Count > 0)
+      {
+        foreach (basicRenderable renderable in renderablesToRemove)
+        {
+          renderables.Remove(renderable);
+        }
+        renderablesToRemove = new List<basicRenderable>();
       }
 
       Raylib.EndMode3D();
