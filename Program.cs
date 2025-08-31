@@ -78,7 +78,7 @@ class organism : basicRenderable {
   {
     if (moving == false)
     {
-      float angle = Program.random.Next(-314, 314) / 100;
+      float angle = (float)(Program.random.NextDouble() * MathF.PI * 2); // 0 to 2π
       Vector2 localTarget = new Vector2(MathF.Cos(angle) * traits.eyesight, MathF.Sin(angle) * traits.eyesight);
       target = organismPosition + localTarget;
       moving = true;
@@ -140,7 +140,8 @@ class organism : basicRenderable {
         }
       }
 
-      stats.food -= 0.05f;
+      // Decrement stats
+      stats.food -= 0.02f;
 
       if (stats.food <= 0.0f)
       {
@@ -208,10 +209,10 @@ class Program() {
     Shader lit = Raylib.LoadShader("./shader/lit.vs", "./shader/lit.fs");
 
     // Initialize renderables
-    Image brownImage = Raylib.GenImageColor(10, 10, Color.Red);
+    Image brownImage = Raylib.GenImageColor(10, 10, Color.Brown);
     Texture2D brownTexture = Raylib.LoadTextureFromImage(brownImage);
 
-    Model rabbitModel = primShapes.sphere(1, 12);
+    Model rabbitModel = primShapes.sphere(0.5f, 12);
     unsafe
     {
       rabbitModel.Materials[0].Maps[(int)MaterialMapIndex.Albedo].Texture = brownTexture;
@@ -227,6 +228,29 @@ class Program() {
     rabbit.traits.oType = organismType.Rabbit;
     rabbit.traits.foodSources = new organismType[] { organismType.Bush };
     rabbit.traits.hydrationSources = new fluidType[] { fluidType.Pond };
+    rabbit.traits.speed = 2.0f;
+
+    
+    Image orangeImage = Raylib.GenImageColor(10, 10, Color.Orange);
+    Texture2D orangeTexture = Raylib.LoadTextureFromImage(orangeImage);
+
+    Model foxModel = primShapes.sphere(0.5f, 12);
+    unsafe
+    {
+      foxModel.Materials[0].Maps[(int)MaterialMapIndex.Albedo].Texture = orangeTexture;
+      foxModel.Materials[0].Shader = lit;
+    }
+
+    organism fox = new organism()
+    {
+      model = foxModel,
+      position = new Vector3(0.0f, 0.0f, 5.0f)
+    };
+
+    fox.traits.oType = organismType.Fox;
+    fox.traits.foodSources = new organismType[] { organismType.Rabbit };
+    fox.traits.hydrationSources = new fluidType[] { fluidType.Pond };
+    fox.traits.speed = 4.0f;
 
     Image greenImage = Raylib.GenImageColor(10, 10, Color.Green);
     Texture2D greenTexture = Raylib.LoadTextureFromImage(greenImage);
@@ -253,6 +277,14 @@ class Program() {
       organism rabbitClone = rabbit.Clone();
       rabbitClone.organismPosition = new Vector2(random.Next(-50, 50), random.Next(-50, 50));
       renderables.Add(rabbitClone);
+    }
+
+    // Add foxes
+    for (int i = 0; i < 40; i++)
+    {
+      organism foxClone = fox.Clone();
+      foxClone.organismPosition = new Vector2(random.Next(-50, 50), random.Next(-50, 50));
+      renderables.Add(foxClone);
     }
     
     // Add bushes
