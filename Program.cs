@@ -1,5 +1,8 @@
-﻿using Raylib_cs;
+﻿using RayGUI_cs;
+using Raylib_cs;
 using System.Numerics;
+using RayGUI_cs;
+using System.Reflection.Metadata;
 
 // Quick primatives
 class primShapes()
@@ -70,12 +73,14 @@ class organism : basicRenderable
     public float food;
     public float hydration;
     public float health;
+    public bool locateMate;
 
     public statsStruct()
     {
       food = 10.0f;
       hydration = 10.0f;
       health = 10.0f;
+      locateMate = false;
     }
   }
 
@@ -175,8 +180,8 @@ class organism : basicRenderable
       }
 
       // Decrement stats
-      stats.food -= 0.02f;
-      stats.hydration -= 0.01f;
+      stats.food -= 0.005f;
+      stats.hydration -= 0.0025f;
 
       if (stats.food <= 0.0f)
       {
@@ -204,7 +209,7 @@ class organism : basicRenderable
     if (moving == true)
     {
       Vector2 moveDirection = new Vector2(target.X - organismPosition.X, target.Y - organismPosition.Y);
-      moveDirection = new Vector2(moveDirection.X / moveDirection.Length(), moveDirection.Y / moveDirection.Length());
+      //moveDirection = new Vector2(moveDirection.X / moveDirection.Length(), moveDirection.Y / moveDirection.Length());
       moveDirection *= traits.speed / 20.0f;
       organismPosition += moveDirection;
     }
@@ -275,7 +280,7 @@ class Program()
     rabbit.traits.oType = organismType.Rabbit;
     rabbit.traits.foodSources = new organismType[] { organismType.Bush };
     rabbit.traits.hydrationSources = new fluidType[] { fluidType.Water };
-    rabbit.traits.speed = 2.0f;
+    rabbit.traits.speed = 0.5f;
 
 
     // Fox organism
@@ -298,7 +303,7 @@ class Program()
     fox.traits.oType = organismType.Fox;
     fox.traits.foodSources = new organismType[] { organismType.Rabbit };
     fox.traits.hydrationSources = new fluidType[] { fluidType.Water };
-    fox.traits.speed = 4.0f;
+    fox.traits.speed = 1.0f;
 
 
     // Bush organism
@@ -339,7 +344,7 @@ class Program()
     };
 
     // Add rabbits
-    for (int i = 0; i < 40; i++)
+    for (int i = 0; i < 60; i++)
     {
       organism rabbitClone = rabbit.Clone();
       rabbitClone.organismPosition = new Vector2(random.Next(-50, 50), random.Next(-50, 50));
@@ -372,13 +377,48 @@ class Program()
 
     Raylib.DisableCursor();
 
+    bool menuOpen = false;
+
+    Font defaultFont = Raylib.GetFontDefault();
+    
+    Dictionary<int, Font> fonts = new Dictionary<int, Font>
+    {
+      { 16, defaultFont }
+    };
+
+    RayGUI.LoadGUI(fonts);
+    
+    Button btn = new Button(10, 10, 48, 18, "Test");
+    btn.Type = ButtonType.Custom;
+    btn.BaseColor = Color.LightGray;
+    btn.HoverColor = Color.DarkGray;
+    btn.Event = () => { Console.WriteLine("Clicked!"); };
+
+    Image backgroundImage = Raylib.GenImageColor(128, 480, Color.Black);
+    Texture2D background = Raylib.LoadTextureFromImage(backgroundImage);
+    Panel panel = new Panel(0, 0, background);
+
+    Textbox textbox = new Textbox(10, 30, 96, 18, "Type...");
+    textbox.BaseColor = Color.LightGray;
+    textbox.HoverColor = Color.Black;
+    textbox.TextColor = Color.Black;
+
+    GuiContainer container = new GuiContainer();
+    container.Add("bg", panel);
+    container.Add("button", btn);
+    container.Add("text", textbox);
+        
+
     while (!Raylib.WindowShouldClose())
     {
       // Clear frame and clear for drawing
       Raylib.BeginDrawing();
       Raylib.ClearBackground(Color.RayWhite);
 
-      unsafe { Raylib.UpdateCamera(&camera, CameraMode.Free); } // Update camera
+      if (!menuOpen)
+      {
+        unsafe { Raylib.UpdateCamera(&camera, CameraMode.Free); } // Update camera 
+      }
 
       // 3D
       Raylib.BeginMode3D(camera);
@@ -404,8 +444,27 @@ class Program()
         }
         renderablesToRemove = new List<basicRenderable>();
       }
-
       Raylib.EndMode3D();
+
+      // Client
+      if (Raylib.IsKeyPressed(KeyboardKey.Tab))
+      {
+        menuOpen = !menuOpen;
+
+        if (menuOpen)
+        {
+          Raylib.EnableCursor();
+        }
+        else
+        {
+          Raylib.DisableCursor();
+        }
+      }
+
+      if (menuOpen)
+      {
+        container.Draw();
+      }
 
       Raylib.EndDrawing(); // End frame
     }
