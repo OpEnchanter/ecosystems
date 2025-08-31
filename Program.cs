@@ -347,6 +347,8 @@ class Program()
     {
       organism rabbitClone = rabbit.Clone();
       rabbitClone.organismPosition = new Vector2(random.Next(-50, 50), random.Next(-50, 50));
+      rabbitClone.traits.eyesight = (float)random.Next(3, 15);
+      rabbitClone.traits.speed = (float)random.Next(1, 5) / 10;
       renderables.Add(rabbitClone);
     }
 
@@ -355,6 +357,8 @@ class Program()
     {
       organism foxClone = fox.Clone();
       foxClone.organismPosition = new Vector2(random.Next(-50, 50), random.Next(-50, 50));
+      foxClone.traits.eyesight = (float)random.Next(3, 15);
+      foxClone.traits.speed = (float)random.Next(3, 10) / 10;
       renderables.Add(foxClone);
     }
 
