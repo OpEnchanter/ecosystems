@@ -2,9 +2,16 @@
 using System.Numerics;
 
 // Quick primatives
-class primShapes() {
-  public static Model sphere(float radius, int resolution) {
+class primShapes()
+{
+  public static Model sphere(float radius, int resolution)
+  {
     return Raylib.LoadModelFromMesh(Raylib.GenMeshSphere(radius, resolution, resolution));
+  }
+
+  public static Model plane(float X, float Y, int resX, int resY)
+  {
+    return Raylib.LoadModelFromMesh(Raylib.GenMeshPlane(X, Y, resX, resY));
   }
 }
 
@@ -29,11 +36,14 @@ enum organismType {
 }
 
 enum fluidType {
-  Pond
+  None,
+  Water
 }
 
-class organism : basicRenderable {
-  public struct traitsStruct {
+class organism : basicRenderable
+{
+  public struct traitsStruct
+  {
     public float speed;
     public float eyesight;
     public bool canMove; // Use for plants
@@ -55,7 +65,8 @@ class organism : basicRenderable {
     }
   }
 
-  public struct statsStruct {
+  public struct statsStruct
+  {
     public float food;
     public float hydration;
     public float health;
@@ -107,7 +118,7 @@ class organism : basicRenderable {
               if (Array.Exists(traits.foodSources, element => element == renderableOrganism.traits.oType))
               {
                 float distance = new Vector2(renderableOrganism.position.X - organismPosition.X, renderableOrganism.position.Z - organismPosition.Y).Length();
-                if (distance < traits.eyesight && distance < nearestFoodSourceDist)
+                if (distance <= traits.eyesight && distance < nearestFoodSourceDist)
                 {
                   nearestFoodSourceDist = distance;
                   nearestFoodSource = renderableOrganism;
@@ -136,12 +147,36 @@ class organism : basicRenderable {
         }
         if (stats.hydration < 3.0f)
         {
-          // Find water sources
+          // Find fluid
+          float nearestFluidSourceDist = float.PositiveInfinity;
+          fluidSource nearestFluidSource = null;
+          foreach (basicRenderable renderable in Program.renderables)
+          {
+            if (renderable is fluidSource)
+            {
+              fluidSource fluid = (fluidSource)renderable;
+              if (traits.hydrationSources.Contains(fluid.sourceType))
+              {
+                float distance = new Vector2(fluid.position.X - position.X, fluid.position.Y - position.Y).Length();
+                if (distance <= traits.eyesight && distance < nearestFluidSourceDist)
+                {
+                  nearestFluidSourceDist = distance;
+                  nearestFluidSource = fluid;
+                }
+              }
+            }
+          }
+
+          if (nearestFluidSourceDist < 0.5 && nearestFluidSource != null)
+          {
+            stats.hydration = 10.0f;
+          }
         }
       }
 
       // Decrement stats
       stats.food -= 0.02f;
+      stats.hydration -= 0.01f;
 
       if (stats.food <= 0.0f)
       {
@@ -179,11 +214,21 @@ class organism : basicRenderable {
 
   public organism Clone()
   {
-    return (organism) this.MemberwiseClone();
+    return (organism)this.MemberwiseClone();
   }
 }
 
-class Program() {
+class fluidSource : basicRenderable
+{
+  public fluidType sourceType = fluidType.None;  
+  public fluidSource Clone()
+  {
+    return (fluidSource)this.MemberwiseClone();
+  }
+}
+
+class Program()
+{
 
   public static List<basicRenderable> renderables = new List<basicRenderable>();
   public static List<basicRenderable> renderablesToRemove = new List<basicRenderable>();
@@ -209,6 +254,8 @@ class Program() {
     Shader lit = Raylib.LoadShader("./shader/lit.vs", "./shader/lit.fs");
 
     // Initialize renderables
+
+    // Rabbit organism
     Image brownImage = Raylib.GenImageColor(10, 10, Color.Brown);
     Texture2D brownTexture = Raylib.LoadTextureFromImage(brownImage);
 
@@ -227,10 +274,11 @@ class Program() {
 
     rabbit.traits.oType = organismType.Rabbit;
     rabbit.traits.foodSources = new organismType[] { organismType.Bush };
-    rabbit.traits.hydrationSources = new fluidType[] { fluidType.Pond };
+    rabbit.traits.hydrationSources = new fluidType[] { fluidType.Water };
     rabbit.traits.speed = 2.0f;
 
-    
+
+    // Fox organism
     Image orangeImage = Raylib.GenImageColor(10, 10, Color.Orange);
     Texture2D orangeTexture = Raylib.LoadTextureFromImage(orangeImage);
 
@@ -249,9 +297,11 @@ class Program() {
 
     fox.traits.oType = organismType.Fox;
     fox.traits.foodSources = new organismType[] { organismType.Rabbit };
-    fox.traits.hydrationSources = new fluidType[] { fluidType.Pond };
+    fox.traits.hydrationSources = new fluidType[] { fluidType.Water };
     fox.traits.speed = 4.0f;
 
+
+    // Bush organism
     Image greenImage = Raylib.GenImageColor(10, 10, Color.Green);
     Texture2D greenTexture = Raylib.LoadTextureFromImage(greenImage);
 
@@ -271,6 +321,23 @@ class Program() {
     bush.traits.oType = organismType.Bush;
     bush.traits.canMove = false;
 
+    // Pond
+    Image blueImage = Raylib.GenImageColor(10, 10, Color.Blue);
+    Texture2D blueTexture = Raylib.LoadTextureFromImage(blueImage);
+
+    Model pondModel = primShapes.plane(2, 2, 1, 1);
+    unsafe
+    {
+      pondModel.Materials[0].Maps[(int)MaterialMapIndex.Albedo].Texture = blueTexture;
+      pondModel.Materials[0].Shader = lit;
+    }
+
+    fluidSource pond = new fluidSource()
+    {
+      model = pondModel,
+      sourceType = fluidType.Water
+    };
+
     // Add rabbits
     for (int i = 0; i < 40; i++)
     {
@@ -286,13 +353,21 @@ class Program() {
       foxClone.organismPosition = new Vector2(random.Next(-50, 50), random.Next(-50, 50));
       renderables.Add(foxClone);
     }
-    
+
     // Add bushes
     for (int i = 0; i < 80; i++)
     {
       organism bushClone = bush.Clone();
       bushClone.organismPosition = new Vector2(random.Next(-50, 50), random.Next(-50, 50));
       renderables.Add(bushClone);
+    }
+
+    // Add ponds
+    for (int i = 0; i < 80; i++)
+    {
+      fluidSource pondClone = pond.Clone();
+      pondClone.position = new Vector3(random.Next(-50, 50), 0, random.Next(-50, 50));
+      renderables.Add(pondClone);
     }
 
     Raylib.DisableCursor();
