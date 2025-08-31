@@ -393,7 +393,9 @@ class Program()
     sbyte guiText = new sbyte();
     bool editing = false;
 
-    while (!Raylib.WindowShouldClose())
+    bool running = true;
+
+    while (!Raylib.WindowShouldClose() && running)
     {
       // Clear frame and clear for drawing
       Raylib.BeginDrawing();
@@ -467,7 +469,7 @@ class Program()
 
         if (RayGui.GuiButton(new Rectangle(10, 450, 96, 18), "Exit") == 1)
         {
-          Raylib.CloseWindow();
+          running = false;
         }
       }
 
