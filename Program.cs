@@ -1,5 +1,9 @@
 ﻿using ZeroElectric.Vinculum;
 using System.Numerics;
+using System.Text.Json;
+using ZeroElectric.Vinculum.Extensions;
+using System.Security.Cryptography.X509Certificates;
+
 
 // Quick primatives
 class primShapes()
@@ -379,21 +383,46 @@ class Program()
     }
 
     bool menuOpen = false;
-
-    Font defaultFont = Raylib.GetFontDefault();
-    
-    Dictionary<int, Font> fonts = new Dictionary<int, Font>
-    {
-      { 16, defaultFont }
-    };
         
     Raylib.DisableCursor();
     Raylib.SetExitKey(0);
 
-    sbyte guiText = new sbyte();
-    bool editing = false;
 
     bool running = true;
+
+    // Load config
+    Dictionary<string, object> config = null;
+
+    if (Directory.Exists("./data"))
+    {
+      if (File.Exists("./data/conf.json"))
+      {
+        string configText = File.ReadAllText("./data/conf.json");
+        config = JsonSerializer.Deserialize<Dictionary<string, object>>(configText);
+      }
+    }
+    else
+    {
+      Console.WriteLine("Data folder does not exist, generating...");
+
+      // Create the data dir
+      Directory.CreateDirectory("data");
+
+      // Create the config file
+      Dictionary<string, object> baseConfig = new Dictionary<string, object>
+      {
+        { "statistics", false },
+        { "show_stats", false }
+      };
+      string jsonText = JsonSerializer.Serialize(baseConfig);
+      File.WriteAllText("./data/conf.json", jsonText);
+    }
+
+    if (config == null)
+    {
+      string configText = File.ReadAllText("./data/conf.json");
+      config = JsonSerializer.Deserialize<Dictionary<string, object>>(configText);
+    }
 
     while (!Raylib.WindowShouldClose() && running)
     {
@@ -450,24 +479,27 @@ class Program()
       if (menuOpen)
       {
         Raylib.DrawRectangle(0, 0, 128, 480, Raylib.BLACK);
-        if (RayGui.GuiButton(new Rectangle(10, 30, 96, 18), "Write to console") == 1)
-        {
-          unsafe { Console.WriteLine(new string(&guiText)); }
-        }
 
+        int idx = 0;
         unsafe
         {
-          if (editing && Raylib.IsMouseButtonPressed(MouseButton.MOUSE_BUTTON_LEFT))
+          foreach (string propertyName in config.Keys)
           {
-            editing = false;
-          }
-          if (RayGui.GuiTextBox(new Rectangle(10, 10, 96, 18), &guiText, 16, editing) == 1)
-          {
-            editing = true;
+            string str = propertyName;
+            sbyte* txt = stackalloc sbyte[str.Length + 1];
+            for (int i = 0; i < str.Length; i++)
+            {
+              txt[i] = (sbyte)str[i];
+            }
+            txt[str.Length] = 0;
+            Bool active = (Bool)((JsonElement)config[propertyName]).GetBoolean();
+            RayGui.GuiCheckBox(new Rectangle(16, idx * 28 + 16, 16, 16), txt, &active);
+            config[propertyName] = JsonDocument.Parse(JsonSerializer.Serialize((bool)active)).RootElement;
+            idx++;
           }
         }
 
-        if (RayGui.GuiButton(new Rectangle(10, 450, 96, 18), "Exit") == 1)
+        if (RayGui.GuiButton(new Rectangle(10, 450, 96, 16), "Exit") == 1)
         {
           running = false;
         }
@@ -475,6 +507,9 @@ class Program()
 
       Raylib.EndDrawing(); // End frame
     }
+
+    string json = JsonSerializer.Serialize(config);
+    File.WriteAllText("./data/conf.json", json);
 
     Raylib.CloseWindow();
   }

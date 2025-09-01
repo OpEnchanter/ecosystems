@@ -22,6 +22,9 @@ This project is a simple ecosystem simulation written in C# using [Raylib-cs](ht
 - **Left Control:** Descend
 - **Space:** Ascend
 
+## Menu
+The menu allows for easy configuration of the game. Users can enable and disable certain features such as population logging (statistics). Note that settins only apply when the game is restarted and are only saved when the game is quit. The quit button is also located in the menu.
+
 ## Getting Started
 
 ### Prerequisites
