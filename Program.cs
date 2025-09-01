@@ -258,6 +258,7 @@ class Program()
 
   static void Main()
   {
+    Raylib.SetConfigFlags(ConfigFlags.FLAG_MSAA_4X_HINT);
     Raylib.InitWindow(640, 480, "Ecosystem Simulation");
     Raylib.SetTargetFPS(60);
 
