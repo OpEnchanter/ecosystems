@@ -93,6 +93,8 @@ class organism : basicRenderable
   public traitsStruct traits = new traitsStruct();
   public statsStruct stats = new statsStruct();
 
+  private Texture statsBase = Raylib.LoadTextureFromImage(Raylib.GenImageColor(2, 1, Raylib.RED));
+
   private void wander()
   {
     if (moving == false)
@@ -218,6 +220,15 @@ class organism : basicRenderable
     }
 
     position = new Vector3(organismPosition.X, 0, organismPosition.Y);
+
+    if (((JsonElement)Program.config["show_stats"]).GetBoolean())
+    {
+      float cameraDistance = (position - Program.camera.position).Length();
+      if (cameraDistance < 20)
+      {
+        Raylib.DrawBillboard(Program.camera, statsBase, position + new Vector3(0.0f, 2.0f, 0.0f), 0.5f, Raylib.RED);
+      }
+    }
   }
 
   public organism Clone()
@@ -242,6 +253,8 @@ class Program()
   public static List<basicRenderable> renderablesToRemove = new List<basicRenderable>();
 
   public static Random random = new Random();
+  public static Dictionary<string, object> config;
+  public static Camera3D camera;
 
   static void Main()
   {
@@ -249,13 +262,13 @@ class Program()
     Raylib.SetTargetFPS(60);
 
     // Initalize camera
-    Camera3D camera = new Camera3D()
+    camera = new Camera3D()
     {
       position = Vector3.Zero,
       target = new Vector3(0.0f, 0.0f, 1.0f),
       up = new Vector3(0.0f, 1.0f, 0.0f),
       fovy = 90.0f,
-      projection = (int) CameraProjection.CAMERA_PERSPECTIVE
+      projection = (int)CameraProjection.CAMERA_PERSPECTIVE
     };
 
     // Initialize shaders
@@ -383,7 +396,7 @@ class Program()
     }
 
     bool menuOpen = false;
-        
+
     Raylib.DisableCursor();
     Raylib.SetExitKey(0);
 
@@ -391,7 +404,7 @@ class Program()
     bool running = true;
 
     // Load config
-    Dictionary<string, object> config = null;
+    config = null;
 
     if (Directory.Exists("./data"))
     {
@@ -412,7 +425,8 @@ class Program()
       Dictionary<string, object> baseConfig = new Dictionary<string, object>
       {
         { "statistics", false },
-        { "show_stats", false }
+        { "show_stats", false },
+        { "show_fps", false }
       };
       string jsonText = JsonSerializer.Serialize(baseConfig);
       File.WriteAllText("./data/conf.json", jsonText);
@@ -503,6 +517,11 @@ class Program()
         {
           running = false;
         }
+      }
+
+      if (((JsonElement)config["show_fps"]).GetBoolean())
+      {
+        Raylib.DrawFPS(548, 16);
       }
 
       Raylib.EndDrawing(); // End frame
