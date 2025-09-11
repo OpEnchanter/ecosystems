@@ -3,6 +3,7 @@ using System.Numerics;
 using System.Text.Json;
 using ZeroElectric.Vinculum.Extensions;
 using System.Security.Cryptography.X509Certificates;
+using System.Text.Json.Nodes;
 
 
 // Quick primatives
@@ -53,7 +54,7 @@ enum sex
   Female
 }
 
-class organism : basicRenderable
+unsafe class organism : basicRenderable
 {
   public struct traitsStruct
   {
@@ -94,7 +95,7 @@ class organism : basicRenderable
       hydration = 10.0f;
       health = 10.0f;
       locateMate = false;
-      matingTimer = 1000;
+      matingTimer = 300;
     }
   }
 
@@ -104,7 +105,18 @@ class organism : basicRenderable
   public traitsStruct traits = new traitsStruct();
   public statsStruct stats = new statsStruct();
 
-  private Texture statsBase = Raylib.LoadTextureFromImage(Raylib.GenImageColor(2, 1, Raylib.RED));
+  private Image* statsBaseImg;
+  private Texture statsBase;
+
+  public organism()
+  {
+    statsBaseImg = (Image*)Raylib.MemAlloc((uint)sizeof(Image));
+    *statsBaseImg = Raylib.GenImageColor(256, 256, Raylib.BLANK);
+    Raylib.ImageDrawText(statsBaseImg, $"sex: {traits.sex}", 10, 10, 24, Raylib.GREEN);
+    Raylib.ImageDrawText(statsBaseImg, $"speed: {traits.speed}", 10, 48, 24, Raylib.GREEN);
+    Raylib.ImageDrawText(statsBaseImg, $"eyesight: {traits.eyesight}", 10, 96, 24, Raylib.GREEN);
+    statsBase = Raylib.LoadTextureFromImage(*statsBaseImg);
+  }
 
   private void wander()
   {
@@ -148,7 +160,7 @@ class organism : basicRenderable
                 float dist = new Vector2(
                   renderableOrganism.organismPosition.X - organismPosition.X,
                   renderableOrganism.organismPosition.Y - organismPosition.Y).Length();
-                if (dist < traits.eyesight && dist < nearestMateDist)
+                if (dist < nearestMateDist)
                 {
                   nearestMate = renderableOrganism;
                 }
@@ -160,9 +172,12 @@ class organism : basicRenderable
             target = nearestMate.organismPosition;
             if (traits.sex == sex.Female && nearestMateDist <= 1.0f)
             {
-              Program.renderablesToAdd.Add(this.Clone());
-              stats.matingTimer = 1000;
-              nearestMate.stats.matingTimer = 1000;
+              for (int i = 0; i < 10; i++)
+              {
+                Program.renderablesToAdd.Add(this.Clone()); 
+              }
+              stats.matingTimer = 300;
+              nearestMate.stats.matingTimer = 300;
             }
           }
           else
@@ -288,7 +303,7 @@ class organism : basicRenderable
       float cameraDistance = (position - Program.camera.position).Length();
       if (cameraDistance < 20)
       {
-        Raylib.DrawBillboard(Program.camera, statsBase, position + new Vector3(0.0f, 2.0f, 0.0f), 0.5f, Raylib.RED);
+        Raylib.DrawBillboard(Program.camera, statsBase, position + new Vector3(0.0f, 2.0f, 0.0f), 1.0f, Raylib.RED);
       }
     }
   }
@@ -318,6 +333,21 @@ class Program()
   public static Random random = new Random();
   public static Dictionary<string, object> config;
   public static Camera3D camera;
+
+  static int countOrganisms(organismType type) {
+    int num = 0;
+    foreach (basicRenderable renderable in renderables) {
+      if (renderable is organism)
+      {
+        organism renderableOrganism = (organism)renderable;
+        if (renderableOrganism.traits.oType == type)
+        {
+          num++;
+        }
+      }
+    }
+    return num;
+  }
 
   static void Main()
   {
@@ -484,6 +514,7 @@ class Program()
 
       // Create the data dir
       Directory.CreateDirectory("data");
+      Directory.CreateDirectory("./data/out");
 
       // Create the config file
       Dictionary<string, object> baseConfig = new Dictionary<string, object>
@@ -502,8 +533,27 @@ class Program()
       config = JsonSerializer.Deserialize<Dictionary<string, object>>(configText);
     }
 
+    int statLogTimer = 0;
+    List<Dictionary<organismType, int>> organismCounts = new List<Dictionary<organismType, int>>();
+
+    bool loggingEnabled = ((JsonElement)config["statistics"]).GetBoolean();
+
     while (!Raylib.WindowShouldClose() && running)
     {
+      // Statistics logging
+      if (loggingEnabled)
+      {
+        statLogTimer++;
+        if (statLogTimer >= (60 * 5))
+        {
+          statLogTimer = 0;
+          organismCounts.Add(new Dictionary<organismType, int> {
+            {organismType.Rabbit, countOrganisms(organismType.Rabbit)},
+            {organismType.Fox, countOrganisms(organismType.Fox)}
+          });
+        }
+      }
+
       // Clear frame and clear for drawing
       Raylib.BeginDrawing();
       Raylib.ClearBackground(Raylib.RAYWHITE);
@@ -603,6 +653,22 @@ class Program()
 
     string json = JsonSerializer.Serialize(config);
     File.WriteAllText("./data/conf.json", json);
+
+    // Write logging data
+    if (loggingEnabled)
+    {
+      using (StreamWriter writer = new StreamWriter("./data/out/log.csv"))
+      {
+        writer.WriteLine("Time,Foxes,Rabbits");
+        int i = 0;
+        foreach (Dictionary<organismType, int> ct in organismCounts)
+        {
+          writer.WriteLine($"{i},{ct[organismType.Fox]},{ct[organismType.Rabbit]}");
+          i++;
+        }
+      }
+    }
+    
 
     Raylib.CloseWindow();
   }
