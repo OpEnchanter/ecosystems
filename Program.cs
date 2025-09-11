@@ -41,9 +41,16 @@ enum organismType {
   Fox
 }
 
-enum fluidType {
+enum fluidType
+{
   None,
   Water
+}
+
+enum sex
+{
+  Male,
+  Female
 }
 
 class organism : basicRenderable
@@ -58,6 +65,7 @@ class organism : basicRenderable
     public fluidType[] hydrationSources;
 
     public organismType oType;
+    public sex sex;
 
     public traitsStruct()
     {
@@ -68,6 +76,7 @@ class organism : basicRenderable
       foodSources = new organismType[0];
       hydrationSources = new fluidType[0];
       oType = organismType.None;
+      sex = (Program.random.Next(2) == 0) ? sex.Male : sex.Female;
     }
   }
 
@@ -77,6 +86,7 @@ class organism : basicRenderable
     public float hydration;
     public float health;
     public bool locateMate;
+    public int matingTimer;
 
     public statsStruct()
     {
@@ -84,6 +94,7 @@ class organism : basicRenderable
       hydration = 10.0f;
       health = 10.0f;
       locateMate = false;
+      matingTimer = 1000;
     }
   }
 
@@ -108,11 +119,62 @@ class organism : basicRenderable
 
   public void Update()
   {
+    stats.matingTimer--;
     if (traits.canMove == true)
     {
       if (stats.food >= 3.0f && stats.hydration >= 3.0f)
       {
-        wander();
+        if (stats.matingTimer <= 0)
+        {
+          stats.locateMate = true;
+        } else {
+          stats.locateMate = false;
+        }
+        if (stats.locateMate)
+        {
+          float nearestMateDist = float.PositiveInfinity;
+          organism nearestMate = null;
+          foreach (basicRenderable renderable in Program.renderables)
+          {
+            if (renderable is organism)
+            {
+              organism renderableOrganism = (organism)renderable;
+              if (
+                renderableOrganism.traits.sex != traits.sex
+                && renderableOrganism.traits.oType == traits.oType
+                && renderableOrganism.stats.locateMate
+                )
+              {
+                float dist = new Vector2(
+                  renderableOrganism.organismPosition.X - organismPosition.X,
+                  renderableOrganism.organismPosition.Y - organismPosition.Y).Length();
+                if (dist < traits.eyesight && dist < nearestMateDist)
+                {
+                  nearestMate = renderableOrganism;
+                }
+              }
+            }
+          }
+          if (nearestMate != null)
+          {
+            target = nearestMate.organismPosition;
+            if (traits.sex == sex.Female && nearestMateDist <= 1.0f)
+            {
+              Program.renderablesToAdd.Add(this.Clone());
+              stats.matingTimer = 1000;
+              nearestMate.stats.matingTimer = 1000;
+            }
+          }
+          else
+          {
+            wander();
+          }
+        }
+        else
+        {
+          wander();
+        }
+
       }
       else
       {
@@ -251,6 +313,7 @@ class Program()
 
   public static List<basicRenderable> renderables = new List<basicRenderable>();
   public static List<basicRenderable> renderablesToRemove = new List<basicRenderable>();
+  public static List<basicRenderable> renderablesToAdd = new List<basicRenderable>();
 
   public static Random random = new Random();
   public static Dictionary<string, object> config;
@@ -472,8 +535,18 @@ class Program()
         {
           renderables.Remove(renderable);
         }
-        renderablesToRemove = new List<basicRenderable>();
+        renderablesToRemove.Clear();
       }
+
+      if (renderablesToAdd.Count > 0)
+      {
+        foreach (basicRenderable renderable in renderablesToAdd)
+        {
+          renderables.Add(renderable);
+        }
+        renderablesToAdd.Clear();
+      }
+
       Raylib.EndMode3D();
 
       // Client
