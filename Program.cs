@@ -4,6 +4,7 @@ using System.Text.Json;
 using ZeroElectric.Vinculum.Extensions;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.Json.Nodes;
+using System.Threading.Tasks.Dataflow;
 
 
 // Quick primatives
@@ -112,9 +113,9 @@ unsafe class organism : basicRenderable
   {
     statsBaseImg = (Image*)Raylib.MemAlloc((uint)sizeof(Image));
     *statsBaseImg = Raylib.GenImageColor(256, 256, Raylib.BLANK);
-    Raylib.ImageDrawText(statsBaseImg, $"sex: {traits.sex}", 10, 10, 24, Raylib.GREEN);
-    Raylib.ImageDrawText(statsBaseImg, $"speed: {traits.speed}", 10, 48, 24, Raylib.GREEN);
-    Raylib.ImageDrawText(statsBaseImg, $"eyesight: {traits.eyesight}", 10, 96, 24, Raylib.GREEN);
+    Raylib.ImageDrawText(statsBaseImg, $"sex: {traits.sex}", 10, 10, 24, Raylib.BLACK);
+    Raylib.ImageDrawText(statsBaseImg, $"speed: {traits.speed}", 10, 48, 24, Raylib.BLACK);
+    Raylib.ImageDrawText(statsBaseImg, $"eyesight: {traits.eyesight}", 10, 96, 24, Raylib.BLACK);
     statsBase = Raylib.LoadTextureFromImage(*statsBaseImg);
   }
 
@@ -142,7 +143,7 @@ unsafe class organism : basicRenderable
         } else {
           stats.locateMate = false;
         }
-        if (stats.locateMate)
+        if (stats.locateMate && traits.sex == sex.Female)
         {
           float nearestMateDist = float.PositiveInfinity;
           organism nearestMate = null;
@@ -152,7 +153,7 @@ unsafe class organism : basicRenderable
             {
               organism renderableOrganism = (organism)renderable;
               if (
-                renderableOrganism.traits.sex != traits.sex
+                renderableOrganism.traits.sex == sex.Male
                 && renderableOrganism.traits.oType == traits.oType
                 && renderableOrganism.stats.locateMate
                 )
@@ -160,9 +161,10 @@ unsafe class organism : basicRenderable
                 float dist = new Vector2(
                   renderableOrganism.organismPosition.X - organismPosition.X,
                   renderableOrganism.organismPosition.Y - organismPosition.Y).Length();
-                if (dist < nearestMateDist)
+                if (dist < nearestMateDist && dist <= traits.eyesight * 3)
                 {
                   nearestMate = renderableOrganism;
+                  nearestMateDist = dist;
                 }
               }
             }
@@ -170,14 +172,15 @@ unsafe class organism : basicRenderable
           if (nearestMate != null)
           {
             target = nearestMate.organismPosition;
+            nearestMate.target = organismPosition;
             if (traits.sex == sex.Female && nearestMateDist <= 1.0f)
             {
-              for (int i = 0; i < 10; i++)
-              {
-                Program.renderablesToAdd.Add(this.Clone()); 
-              }
               stats.matingTimer = 300;
               nearestMate.stats.matingTimer = 300;
+              for (int i = 0; i < Program.random.Next(1,2); i++)
+              {
+                Program.renderablesToAdd.Add(this.Clone());
+              }
             }
           }
           else
@@ -262,8 +265,8 @@ unsafe class organism : basicRenderable
       }
 
       // Decrement stats
-      stats.food -= 0.005f;
-      stats.hydration -= 0.0025f;
+      stats.food -= 0.007f;
+      stats.hydration -= 0.0055f;
 
       if (stats.food <= 0.0f)
       {
@@ -381,17 +384,6 @@ class Program()
       rabbitModel.materials[0].shader = lit;
     }
 
-    organism rabbit = new organism()
-    {
-      model = rabbitModel,
-      position = new Vector3(0.0f, 0.0f, 5.0f)
-    };
-
-    rabbit.traits.oType = organismType.Rabbit;
-    rabbit.traits.foodSources = new organismType[] { organismType.Bush };
-    rabbit.traits.hydrationSources = new fluidType[] { fluidType.Water };
-    rabbit.traits.speed = 0.5f;
-
 
     // Fox organism
     Image orangeImage = Raylib.GenImageColor(10, 10, Raylib.ORANGE);
@@ -403,18 +395,6 @@ class Program()
       foxModel.materials[0].maps[(int)MaterialMapIndex.MATERIAL_MAP_ALBEDO].texture = orangetexture;
       foxModel.materials[0].shader = lit;
     }
-
-    organism fox = new organism()
-    {
-      model = foxModel,
-      position = new Vector3(0.0f, 0.0f, 5.0f)
-    };
-
-    fox.traits.oType = organismType.Fox;
-    fox.traits.foodSources = new organismType[] { organismType.Rabbit };
-    fox.traits.hydrationSources = new fluidType[] { fluidType.Water };
-    fox.traits.speed = 1.0f;
-
 
     // Bush organism
     Image greenImage = Raylib.GenImageColor(10, 10, Raylib.GREEN);
@@ -456,21 +436,37 @@ class Program()
     // Add rabbits
     for (int i = 0; i < 60; i++)
     {
-      organism rabbitClone = rabbit.Clone();
-      rabbitClone.organismPosition = new Vector2(random.Next(-50, 50), random.Next(-50, 50));
-      rabbitClone.traits.eyesight = (float)random.Next(3, 15);
-      rabbitClone.traits.speed = (float)random.Next(1, 5) / 10;
-      renderables.Add(rabbitClone);
+      organism rabbit = new organism()
+      {
+        model = rabbitModel,
+        position = new Vector3(0.0f, 0.0f, 5.0f)
+      };
+
+      rabbit.traits.oType = organismType.Rabbit;
+      rabbit.traits.foodSources = new organismType[] { organismType.Bush };
+      rabbit.traits.hydrationSources = new fluidType[] { fluidType.Water };
+      rabbit.organismPosition = new Vector2(random.Next(-50, 50), random.Next(-50, 50));
+      rabbit.traits.eyesight = (float)random.Next(3, 15);
+      rabbit.traits.speed = (float)random.Next(1, 5) / 10;
+      renderables.Add(rabbit);
     }
 
     // Add foxes
     for (int i = 0; i < 40; i++)
     {
-      organism foxClone = fox.Clone();
-      foxClone.organismPosition = new Vector2(random.Next(-50, 50), random.Next(-50, 50));
-      foxClone.traits.eyesight = (float)random.Next(3, 15);
-      foxClone.traits.speed = (float)random.Next(3, 10) / 10;
-      renderables.Add(foxClone);
+      organism fox = new organism()
+      {
+        model = foxModel,
+        position = new Vector3(0.0f, 0.0f, 5.0f)
+      };
+
+      fox.traits.oType = organismType.Fox;
+      fox.traits.foodSources = new organismType[] { organismType.Rabbit };
+      fox.traits.hydrationSources = new fluidType[] { fluidType.Water };
+      fox.organismPosition = new Vector2(random.Next(-50, 50), random.Next(-50, 50));
+      fox.traits.eyesight = (float)random.Next(3, 15);
+      fox.traits.speed = (float)random.Next(3, 10) / 10;
+      renderables.Add(fox);
     }
 
     // Add bushes
