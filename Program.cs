@@ -87,6 +87,7 @@ unsafe class organism : basicRenderable
     public float food;
     public float hydration;
     public float health;
+    public float maxHealth;
     public bool locateMate;
     public int matingTimer;
 
@@ -97,6 +98,7 @@ unsafe class organism : basicRenderable
       health = 10.0f;
       locateMate = false;
       matingTimer = 300;
+      maxHealth = health;
     }
   }
 
@@ -111,6 +113,8 @@ unsafe class organism : basicRenderable
 
   public organism()
   {
+    traits.speed = Program.random.Next(50, 200) / 100.0f;
+    traits.eyesight = Program.random.Next(10, 500) / 100.0f;
     statsBaseImg = (Image*)Raylib.MemAlloc((uint)sizeof(Image));
     *statsBaseImg = Raylib.GenImageColor(256, 256, Raylib.BLANK);
     Raylib.ImageDrawText(statsBaseImg, $"sex: {traits.sex}", 10, 10, 24, Raylib.BLACK);
@@ -140,7 +144,9 @@ unsafe class organism : basicRenderable
         if (stats.matingTimer <= 0)
         {
           stats.locateMate = true;
-        } else {
+        }
+        else
+        {
           stats.locateMate = false;
         }
         if (stats.locateMate && traits.sex == sex.Female)
@@ -177,7 +183,7 @@ unsafe class organism : basicRenderable
             {
               stats.matingTimer = 300;
               nearestMate.stats.matingTimer = 300;
-              for (int i = 0; i < Program.random.Next(1,2); i++)
+              for (int i = 0; i < Program.random.Next(1, 2); i++)
               {
                 Program.renderablesToAdd.Add(this.Clone());
               }
@@ -220,7 +226,7 @@ unsafe class organism : basicRenderable
           if (nearestFoodSourceDist < 0.5 && nearestFoodSource != null)
           {
             // Eat food
-            nearestFoodSource.stats.health -= 1.0f;
+            nearestFoodSource.stats.health -= 10.0f;
             stats.food = 10.0f;
           }
 
@@ -285,6 +291,15 @@ unsafe class organism : basicRenderable
         Program.renderablesToRemove.Add(this);
       }
     }
+    else if (stats.health < stats.maxHealth)
+    {
+      stats.health += 0.05f;
+    }
+
+    if (stats.health > stats.maxHealth)
+    {
+      stats.health = stats.maxHealth;
+    }
 
     if (new Vector2(target.X - organismPosition.X, target.Y - organismPosition.Y).Length() < 0.5f)
     {
@@ -306,7 +321,7 @@ unsafe class organism : basicRenderable
       float cameraDistance = (position - Program.camera.position).Length();
       if (cameraDistance < 20)
       {
-        Raylib.DrawBillboard(Program.camera, statsBase, position + new Vector3(0.0f, 2.0f, 0.0f), 1.0f, Raylib.RED);
+        Raylib.DrawBillboard(Program.camera, statsBase, position + new Vector3(0.0f, 2.0f, 0.0f), 2.5f, Raylib.RED);
       }
     }
   }
@@ -413,6 +428,8 @@ class Program()
       position = new Vector3(0.0f, 0.0f, 0.0f),
     };
 
+    bush.stats.health = 30.0f;
+    bush.stats.maxHealth = 30.0f;
     bush.traits.oType = organismType.Bush;
     bush.traits.canMove = false;
 
