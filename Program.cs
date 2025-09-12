@@ -107,20 +107,32 @@ unsafe class organism : basicRenderable
   public bool moving = false;
   public traitsStruct traits = new traitsStruct();
   public statsStruct stats = new statsStruct();
+  private Texture debugTex;
 
-  private Image* statsBaseImg;
-  private Texture statsBase;
+  private Texture generateDebugTex()
+  {
+    Image* img;
+    img = (Image*)Raylib.MemAlloc((uint)sizeof(Image));
+    *img = Raylib.GenImageColor(256, 512, Raylib.BLANK);
+    Raylib.ImageDrawText(img, $"sex: {traits.sex}", 10, 10, 24, Raylib.BLACK);
+    Raylib.ImageDrawText(img, $"speed: {traits.speed}", 10, 48*1, 24, Raylib.BLACK);
+    Raylib.ImageDrawText(img, $"eyesight: {traits.eyesight}", 10, 48*2, 24, Raylib.BLACK);
+    Raylib.ImageDrawText(img, $"health: {stats.health}", 10, 48*3, 24, Raylib.BLACK);
+    Raylib.ImageDrawText(img, $"nutrition: {stats.food}", 10, 48*4, 24, Raylib.BLACK);
+    Raylib.ImageDrawText(img, $"hydration: {stats.hydration}", 10, 48*5, 24, Raylib.BLACK);
+    Raylib.ImageDrawText(img, $"mating_timer: {stats.matingTimer}", 10, 48*6, 24, Raylib.BLACK);
+    Raylib.ImageDrawText(img, $"find_mate: {stats.locateMate}", 10, 48*7, 24, Raylib.BLACK);
+    Texture tex = Raylib.LoadTextureFromImage(*img);
+    Raylib.UnloadImage(*img);
+    Raylib.MemFree(img);
+    return tex;
+  }
 
   public organism()
   {
     traits.speed = Program.random.Next(50, 200) / 100.0f;
     traits.eyesight = Program.random.Next(10, 500) / 100.0f;
-    statsBaseImg = (Image*)Raylib.MemAlloc((uint)sizeof(Image));
-    *statsBaseImg = Raylib.GenImageColor(256, 256, Raylib.BLANK);
-    Raylib.ImageDrawText(statsBaseImg, $"sex: {traits.sex}", 10, 10, 24, Raylib.BLACK);
-    Raylib.ImageDrawText(statsBaseImg, $"speed: {traits.speed}", 10, 48, 24, Raylib.BLACK);
-    Raylib.ImageDrawText(statsBaseImg, $"eyesight: {traits.eyesight}", 10, 96, 24, Raylib.BLACK);
-    statsBase = Raylib.LoadTextureFromImage(*statsBaseImg);
+    debugTex = generateDebugTex(); 
   }
 
   private void wander()
@@ -136,7 +148,7 @@ unsafe class organism : basicRenderable
 
   public void Update()
   {
-    stats.matingTimer--;
+    stats.matingTimer -= Program.random.Next(0,2);
     if (traits.canMove == true)
     {
       if (stats.food >= 3.0f && stats.hydration >= 3.0f)
@@ -271,8 +283,8 @@ unsafe class organism : basicRenderable
       }
 
       // Decrement stats
-      stats.food -= 0.007f;
-      stats.hydration -= 0.0055f;
+      stats.food -= 0.0025f;
+      stats.hydration -= 0.0015f;
 
       if (stats.food <= 0.0f)
       {
@@ -309,19 +321,24 @@ unsafe class organism : basicRenderable
     if (moving == true)
     {
       Vector2 moveDirection = new Vector2(target.X - organismPosition.X, target.Y - organismPosition.Y);
-      //moveDirection = new Vector2(moveDirection.X / moveDirection.Length(), moveDirection.Y / moveDirection.Length());
+      moveDirection = new Vector2(moveDirection.X / moveDirection.Length(), moveDirection.Y / moveDirection.Length()); // Normalize
       moveDirection *= traits.speed / 20.0f;
       organismPosition += moveDirection;
     }
 
     position = new Vector3(organismPosition.X, 0, organismPosition.Y);
 
-    if (((JsonElement)Program.config["show_stats"]).GetBoolean())
+    if (((JsonElement)Program.config["debug"]).GetBoolean())
     {
       float cameraDistance = (position - Program.camera.position).Length();
       if (cameraDistance < 20)
       {
-        Raylib.DrawBillboard(Program.camera, statsBase, position + new Vector3(0.0f, 2.0f, 0.0f), 2.5f, Raylib.RED);
+        if (cameraDistance < 5)
+        {
+          debugTex = generateDebugTex();
+        }
+        Raylib.DrawBillboard(Program.camera, debugTex, position + new Vector3(0.0f, 2.5f, 0.0f), 2.5f, Raylib.RED);
+        //Raylib.DrawCircle3D(position, traits.eyesight, new Vector3(1.0f,0,0), 90.0f, Raylib.RED);
       }
     }
   }
@@ -352,9 +369,11 @@ class Program()
   public static Dictionary<string, object> config;
   public static Camera3D camera;
 
-  static int countOrganisms(organismType type) {
+  static int countOrganisms(organismType type)
+  {
     int num = 0;
-    foreach (basicRenderable renderable in renderables) {
+    foreach (basicRenderable renderable in renderables)
+    {
       if (renderable is organism)
       {
         organism renderableOrganism = (organism)renderable;
@@ -372,6 +391,7 @@ class Program()
     Raylib.SetConfigFlags(ConfigFlags.FLAG_MSAA_4X_HINT);
     Raylib.InitWindow(640, 480, "Ecosystem Simulation");
     Raylib.SetTargetFPS(60);
+    Raylib.SetTraceLogLevel((int)TraceLogLevel.LOG_WARNING);
 
     // Initalize camera
     camera = new Camera3D()
@@ -533,7 +553,7 @@ class Program()
       Dictionary<string, object> baseConfig = new Dictionary<string, object>
       {
         { "statistics", false },
-        { "show_stats", false },
+        { "debug", false },
         { "show_fps", false }
       };
       string jsonText = JsonSerializer.Serialize(baseConfig);
@@ -661,6 +681,11 @@ class Program()
         Raylib.DrawFPS(548, 16);
       }
 
+      if (loggingEnabled != ((JsonElement)config["statistics"]).GetBoolean())
+      {
+        Raylib.DrawText("Restart Required", 500, 460, 16, Raylib.RED);
+      }
+
       Raylib.EndDrawing(); // End frame
     }
 
@@ -681,7 +706,6 @@ class Program()
         }
       }
     }
-    
 
     Raylib.CloseWindow();
   }
