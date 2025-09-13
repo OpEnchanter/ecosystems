@@ -202,7 +202,10 @@ unsafe class organism : basicRenderable
               nearestMate.stats.matingTimer = 300;
               for (int i = 0; i < Program.random.Next(1, 2); i++)
               {
-                Program.renderablesToAdd.Add(this.Clone());
+                organism child = this.Clone();
+                child.traits.eyesight = (traits.eyesight + nearestMate.traits.eyesight) / 2;
+                child.traits.speed = (traits.speed + nearestMate.traits.speed) / 2;
+                Program.renderablesToAdd.Add(child);
               }
             }
           }
@@ -333,7 +336,8 @@ unsafe class organism : basicRenderable
       moveDirection *= traits.speed / 20.0f;
       organismPosition += moveDirection;
     }
-    else
+
+    if (!traits.canMove)
     {
       anim = 0.0f;
     }
