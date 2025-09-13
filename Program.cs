@@ -128,13 +128,6 @@ unsafe class organism : basicRenderable
     return tex;
   }
 
-  public organism()
-  {
-    traits.speed = Program.random.Next(50, 200) / 100.0f;
-    traits.eyesight = Program.random.Next(10, 500) / 100.0f;
-    debugTex = generateDebugTex(); 
-  }
-
   private void wander()
   {
     if (moving == false)
@@ -146,9 +139,21 @@ unsafe class organism : basicRenderable
     }
   }
 
+  private float animationBounceSpeed = 0.1f;
+  private float animationBounceHeight = 0.25f;
+  private float animationTimeOffset = 0.0f;
+
+  public organism()
+  {
+    traits.speed = Program.random.Next(50, 200) / 100.0f;
+    traits.eyesight = Program.random.Next(10, 500) / 100.0f;
+    animationTimeOffset = Program.random.Next(0, 300) / 100.0f;
+    debugTex = generateDebugTex();
+  }
+
   public void Update()
   {
-    stats.matingTimer -= Program.random.Next(0,2);
+    stats.matingTimer -= Program.random.Next(0, 2);
     if (traits.canMove == true)
     {
       if (stats.food >= 3.0f && stats.hydration >= 3.0f)
@@ -318,6 +323,9 @@ unsafe class organism : basicRenderable
       moving = false;
     }
 
+    float anim = (MathF.Sin(Program.time * animationBounceSpeed + animationTimeOffset) + 1) * animationBounceHeight;
+
+
     if (moving == true)
     {
       Vector2 moveDirection = new Vector2(target.X - organismPosition.X, target.Y - organismPosition.Y);
@@ -325,8 +333,12 @@ unsafe class organism : basicRenderable
       moveDirection *= traits.speed / 20.0f;
       organismPosition += moveDirection;
     }
+    else
+    {
+      anim = 0.0f;
+    }
 
-    position = new Vector3(organismPosition.X, 0, organismPosition.Y);
+    position = new Vector3(organismPosition.X, anim, organismPosition.Y);
 
     if (((JsonElement)Program.config["debug"]).GetBoolean())
     {
@@ -337,7 +349,7 @@ unsafe class organism : basicRenderable
         {
           debugTex = generateDebugTex();
         }
-        Raylib.DrawBillboard(Program.camera, debugTex, position + new Vector3(0.0f, 2.5f, 0.0f), 2.5f, Raylib.RED);
+        Raylib.DrawBillboard(Program.camera, debugTex, position + new Vector3(0.0f, 2.5f - anim, 0.0f), 2.5f, Raylib.RED);
         //Raylib.DrawCircle3D(position, traits.eyesight, new Vector3(1.0f,0,0), 90.0f, Raylib.RED);
       }
     }
@@ -385,6 +397,8 @@ class Program()
     }
     return num;
   }
+
+  public static float time = 0.0f;
 
   static void Main()
   {
@@ -573,6 +587,7 @@ class Program()
 
     while (!Raylib.WindowShouldClose() && running)
     {
+      time++; // Increment time
       // Statistics logging
       if (loggingEnabled)
       {
