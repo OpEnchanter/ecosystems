@@ -259,6 +259,7 @@ unsafe class organism : basicRenderable
           else
           {
             wander();
+            
           }
         }
         if (stats.hydration < 3.0f)
@@ -536,9 +537,12 @@ class Program()
     for (int i = 0; i < 80; i++)
     {
       fluidSource pondClone = pond.Clone();
-      pondClone.position = new Vector3(random.Next(-50, 50), 0, random.Next(-50, 50));
+      pondClone.position = new Vector3(random.Next(-50, 50), -0.5f, random.Next(-50, 50));
       renderables.Add(pondClone);
     }
+
+    // Ground
+    Model ground = primShapes.plane(100, 100, 1, 1);
 
     bool menuOpen = false;
 
