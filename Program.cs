@@ -375,7 +375,7 @@ class fluidSource : basicRenderable
   }
 }
 
-class Program()
+unsafe class Program()
 {
 
   public static List<basicRenderable> renderables = new List<basicRenderable>();
@@ -542,7 +542,33 @@ class Program()
     }
 
     // Ground
-    Model ground = primShapes.plane(100, 100, 1, 1);
+    Image* groundHeightmap = (Image*)Raylib.MemAlloc((uint)sizeof(Image));
+    *groundHeightmap = Raylib.GenImageColor(1024, 1024, Raylib.BLACK);
+    Raylib.ImageDrawCircle(groundHeightmap, 512, 512, 512, Raylib.WHITE);
+    Texture groundTexture = Raylib.LoadTextureFromImage(Raylib.GenImageColor(10, 10, Raylib.DARKGREEN));
+    Model groundModel = Raylib.LoadModelFromMesh(Raylib.GenMeshHeightmap(*groundHeightmap, new Vector3(100.0f, 6.0f, 100.0f)));
+    groundModel.materials[0].shader = lit;
+    groundModel.materials[0].maps[(int)MaterialMapIndex.MATERIAL_MAP_ALBEDO].texture = groundTexture;
+
+    Raylib.UnloadImage(*groundHeightmap);
+    Raylib.MemFree(groundHeightmap);
+
+    basicRenderable ground = new basicRenderable();
+    ground.model = groundModel;
+    ground.position = new Vector3(-50.0f, -6.5f, -50.0f);
+    renderables.Add(ground);
+
+    Texture waterTexture = Raylib.LoadTextureFromImage(Raylib.GenImageColor(1, 1, Raylib.BLUE));
+    Model waterModel = primShapes.plane(400, 400, 1, 1);
+    waterModel.materials[0].shader = lit;
+    waterModel.materials[0].maps[(int)MaterialMapIndex.MATERIAL_MAP_ALBEDO].texture = waterTexture;
+
+    basicRenderable water = new basicRenderable();
+    water.model = waterModel;
+    water.position = new Vector3(0.0f, -1.0f, 0.0f);
+    renderables.Add(water);
+
+    
 
     bool menuOpen = false;
 
@@ -622,7 +648,10 @@ class Program()
       // 3D
       Raylib.BeginMode3D(camera);
 
-      Raylib.DrawGrid(100, 1);
+      if (((JsonElement)config["debug"]).GetBoolean())
+      {
+        Raylib.DrawGrid(100, 1); 
+      }
 
       // Update cycle
       foreach (basicRenderable renderable in renderables)
