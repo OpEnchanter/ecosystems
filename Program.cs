@@ -5,6 +5,7 @@ using ZeroElectric.Vinculum.Extensions;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks.Dataflow;
+using System.Collections;
 
 
 // Quick primatives
@@ -36,6 +37,11 @@ class basicRenderable()
     RlGl.rlRotatef(eulerRotation.Z, 0.0f, 0.0f, 1.0f);
     Raylib.DrawModel(model, Vector3.Zero, 1.0f, Raylib.RED);
     RlGl.rlPopMatrix();
+  }
+
+  public basicRenderable Clone()
+  {
+    return (basicRenderable)this.MemberwiseClone();
   }
 }
 
@@ -417,6 +423,37 @@ unsafe class Program()
     Raylib.EndDrawing();
   }
 
+  private static void placeFeatures(Dictionary<basicRenderable, int> objects, Image heightmap, int generationThreshold)
+  {
+    foreach (basicRenderable renderable in objects.Keys)
+    {
+      for (int i = 0; i < objects[renderable]; i++)
+      {
+        Vector2 p = new Vector2(random.Next(-200, 200), random.Next(-200, 200));
+        bool canGenerate = Raylib.GetImageColor(heightmap, (int)MathF.Round((p.X + 200) / 400.0f * 1023), (int)MathF.Round((p.Y + 200) / 400.0f * 1023)).r > generationThreshold;
+        while (!canGenerate) {
+          p = new Vector2(random.Next(-200, 200), random.Next(-200, 200));
+          canGenerate = Raylib.GetImageColor(heightmap, (int)MathF.Round((p.X + 200) / 400.0f * 1023), (int)MathF.Round((p.Y + 200) / 400.0f * 1023)).r > generationThreshold;
+        }
+
+        if (renderable is organism)
+        {
+          organism clone = (organism)renderable.Clone();
+          clone.organismPosition = p;
+          clone.traits.eyesight = (float)random.Next(3, 15);
+          clone.traits.speed = (float)random.Next(1, 5) / 10;
+          renderables.Add(clone);
+        }
+        else
+        {
+          basicRenderable clone = renderable.Clone();
+          clone.position = new Vector3(p.X, 0, p.Y);
+          renderables.Add(clone);
+        }
+      }
+    }
+  }
+
   static void Main()
   {
     Raylib.SetConfigFlags(ConfigFlags.FLAG_MSAA_4X_HINT);
@@ -439,9 +476,9 @@ unsafe class Program()
     // Initialize shaders
     Shader lit = Raylib.LoadShader("./shader/lit.vs", "./shader/lit.fs");
 
-    // Initialize renderables
+    // Initialize textures
 
-    loadingScreen("Organisms");
+    loadingScreen("Organism Textures");
 
     // Rabbit organism
     Image brownImage = Raylib.GenImageColor(10, 10, Raylib.BROWN);
@@ -477,6 +514,55 @@ unsafe class Program()
       bushModel.materials[0].shader = lit;
     }
 
+    
+
+
+    // Ground
+    Image* groundHeightmap = (Image*)Raylib.MemAlloc((uint)sizeof(Image));
+    *groundHeightmap = Raylib.GenImagePerlinNoise(1024, 1024, 0, 0, 5.0f);
+    Raylib.ImageDrawCircle(groundHeightmap, 512, 512, 196, Raylib.WHITE);
+    for (int i = 0; i < 50; i++)
+    {
+      loadingScreen($"Terrain | Landmass {i} of 50");
+      Raylib.ImageDrawCircle(
+        groundHeightmap,
+        512 + Program.random.Next(-256, 256),
+        512 + Program.random.Next(-256, 256),
+        Program.random.Next(32, 128), Raylib.WHITE);
+    }
+
+    loadingScreen($"Terrain | Smoothing");
+    Raylib.ImageBlurGaussian(groundHeightmap, 10);
+
+    int terrainThreshold = 245;
+
+    // Add details
+    loadingScreen($"Details | Load");
+    fluidSource pond = new fluidSource()
+    {
+      sourceType = fluidType.Water
+    };
+
+    organism fox = new organism()
+    {
+      model = foxModel,
+      position = new Vector3(0.0f, 0.0f, 5.0f)
+    };
+
+    fox.traits.oType = organismType.Fox;
+    fox.traits.foodSources = new organismType[] { organismType.Rabbit };
+    fox.traits.hydrationSources = new fluidType[] { fluidType.Water };
+
+    organism rabbit = new organism()
+    {
+      model = rabbitModel,
+      position = new Vector3(0.0f, 0.0f, 5.0f)
+    };
+
+    rabbit.traits.oType = organismType.Rabbit;
+    rabbit.traits.foodSources = new organismType[] { organismType.Bush };
+    rabbit.traits.hydrationSources = new fluidType[] { fluidType.Water };
+
     organism bush = new organism()
     {
       model = bushModel,
@@ -487,96 +573,78 @@ unsafe class Program()
     bush.stats.maxHealth = 30.0f;
     bush.traits.oType = organismType.Bush;
     bush.traits.canMove = false;
-
-    // Pond
-    fluidSource pond = new fluidSource()
+    
+    loadingScreen($"Details | Place");
+    placeFeatures(new Dictionary<basicRenderable, int>
     {
-      sourceType = fluidType.Water
-    };
+      { bush, 150 },
+      { fox, 120 },
+      { rabbit, 120 },
+    }, *groundHeightmap, terrainThreshold);
 
-    // Add rabbits
-    for (int i = 0; i < 60; i++)
+    // Add ponds
+    List<Vector2> ponds = new List<Vector2>();
+    for (int i = 0; i < 150; i++)
     {
-      organism rabbit = new organism()
-      {
-        model = rabbitModel,
-        position = new Vector3(0.0f, 0.0f, 5.0f)
-      };
-
-      rabbit.traits.oType = organismType.Rabbit;
-      rabbit.traits.foodSources = new organismType[] { organismType.Bush };
-      rabbit.traits.hydrationSources = new fluidType[] { fluidType.Water };
-      rabbit.organismPosition = new Vector2(random.Next(-50, 50), random.Next(-50, 50));
-      rabbit.traits.eyesight = (float)random.Next(3, 15);
-      rabbit.traits.speed = (float)random.Next(1, 5) / 10;
-      renderables.Add(rabbit);
-    }
-
-    // Add foxes
-    for (int i = 0; i < 40; i++)
-    {
-      organism fox = new organism()
-      {
-        model = foxModel,
-        position = new Vector3(0.0f, 0.0f, 5.0f)
-      };
-
-      fox.traits.oType = organismType.Fox;
-      fox.traits.foodSources = new organismType[] { organismType.Rabbit };
-      fox.traits.hydrationSources = new fluidType[] { fluidType.Water };
-      fox.organismPosition = new Vector2(random.Next(-50, 50), random.Next(-50, 50));
-      fox.traits.eyesight = (float)random.Next(3, 15);
-      fox.traits.speed = (float)random.Next(3, 10) / 10;
-      renderables.Add(fox);
-    }
-
-    // Add bushes
-    for (int i = 0; i < 80; i++)
-    {
-      organism bushClone = bush.Clone();
-      bushClone.organismPosition = new Vector2(random.Next(-50, 50), random.Next(-50, 50));
-      renderables.Add(bushClone);
+      Vector2 p = new Vector2(random.Next(-200, 200), random.Next(-200, 200));
+      bool canGenerate = Raylib.GetImageColor(*groundHeightmap, (int)MathF.Round((p.X + 200) / 400.0f * 1023), (int)MathF.Round((p.Y + 200) / 400.0f * 1023)).r > terrainThreshold;
+      while (!canGenerate) {
+        p = new Vector2(random.Next(-200, 200), random.Next(-200, 200));
+        canGenerate = Raylib.GetImageColor(*groundHeightmap, (int)MathF.Round((p.X + 200) / 400.0f * 1023), (int)MathF.Round((p.Y + 200) / 400.0f * 1023)).r > terrainThreshold;
+      }
+      fluidSource pondClone = pond.Clone();
+      pondClone.position = new Vector3(p.X, -0.5f, p.Y);
+      ponds.Add(p);
+      renderables.Add(pondClone);
     }
 
     loadingScreen("Geographical Features");
 
-    // Add ponds
-    List<Vector2> ponds = new List<Vector2>();
-    for (int i = 0; i < 80; i++)
-    {
-      fluidSource pondClone = pond.Clone();
-      pondClone.position = new Vector3(random.Next(-50, 50), -0.5f, random.Next(-50, 50));
-      ponds.Add(new Vector2(pondClone.position.X, pondClone.position.Z));
-      renderables.Add(pondClone);
-    }
-
-
-    // Ground
-    Image* groundHeightmap = (Image*)Raylib.MemAlloc((uint)sizeof(Image));
-    *groundHeightmap = Raylib.GenImagePerlinNoise(1024, 1024, 0, 0, 5.0f);
-    Raylib.ImageDrawCircle(groundHeightmap, 512, 512, 196, Raylib.WHITE);
-    for (int i = 0; i < 50; i++)
-    {
-      loadingScreen($"Terrain | Landmass {i}");
-      Raylib.ImageDrawCircle(
-        groundHeightmap,
-        512 + Program.random.Next(-256, 256),
-        512 + Program.random.Next(-256, 256),
-        Program.random.Next(32, 128), Raylib.WHITE);
-    }
-    loadingScreen($"Terrain | Primary Blur");
-    Raylib.ImageBlurGaussian(groundHeightmap, 10);
+    // Ponds
     foreach (Vector2 p in ponds)
     {
-      loadingScreen($"Terrain | Ponds {ponds.IndexOf(p)}");
+      loadingScreen($"Terrain | Pond {ponds.IndexOf(p)} of {ponds.Count()}");
       Raylib.ImageDrawCircle(groundHeightmap,
       (int)MathF.Round((p.X + 200) / 400.0f * 1023),
       (int)MathF.Round((p.Y + 200) / 400.0f * 1023),
       2, Raylib.GRAY);
     }
-    loadingScreen($"Terrain | Secondary Blur");
+
+
+    loadingScreen($"Terrain | Smoothing");
     Raylib.ImageBlurGaussian(groundHeightmap, 2);
-    Texture groundTexture = Raylib.LoadTextureFromImage(Raylib.GenImageColor(10, 10, Raylib.DARKGREEN));
+
+
+    loadingScreen($"Textures | Terrain");
+    // Create copy of heightmap
+    Image* groundImage = (Image*)Raylib.MemAlloc((uint)sizeof(Image));
+    *groundImage = Raylib.ImageCopy(*groundHeightmap);
+    // Recolor
+    Color* pixels = Raylib.LoadImageColors(*groundImage);
+    for (int i = 0; i < groundImage->width * groundImage->height; i++)
+    {
+      if (pixels[i].r <= terrainThreshold && pixels[i].g <= terrainThreshold && pixels[i].b <= terrainThreshold)
+      {
+        pixels[i] = new Color((int)(120 * (pixels[i].r / (255 / 1.5f))) + 15, (int)(91 * (pixels[i].r / (255 / 1.5f))) + 15, (int)(13 * (pixels[i].r / (255 / 1.5f))) + 15, 255);
+      }
+      else if (pixels[i].r >= terrainThreshold && pixels[i].g >= terrainThreshold && pixels[i].b >= terrainThreshold)
+      {
+        pixels[i] = new Color(45, 99, 38, 255);
+      }
+    }
+
+    *groundImage = new Image
+    {
+      data = pixels,
+      width = 1024,
+      height = 1024,
+      mipmaps = 1,
+      format = (int)PixelFormat.PIXELFORMAT_UNCOMPRESSED_R8G8B8A8
+    };
+
+    Raylib.ExportImage(*groundImage, "./data/groundtex.png");
+
+    Texture groundTexture = Raylib.LoadTextureFromImage(*groundImage);
     Model groundModel = Raylib.LoadModelFromMesh(Raylib.GenMeshHeightmap(*groundHeightmap, new Vector3(400.0f, 12.0f, 400.0f)));
     groundModel.materials[0].shader = lit;
     groundModel.materials[0].maps[(int)MaterialMapIndex.MATERIAL_MAP_ALBEDO].texture = groundTexture;
@@ -589,7 +657,7 @@ unsafe class Program()
     ground.position = new Vector3(-200.0f, -12.5f, -200.0f);
     renderables.Add(ground);
 
-    Texture waterTexture = Raylib.LoadTextureFromImage(Raylib.GenImageColor(1, 1, new Color(15, 25, 215, 155)));
+    Texture waterTexture = Raylib.LoadTextureFromImage(Raylib.GenImageColor(1, 1, new Color(35, 137, 218, 155)));
     Model waterModel = primShapes.plane(400, 400, 1, 1);
     waterModel.materials[0].shader = lit;
     waterModel.materials[0].maps[(int)MaterialMapIndex.MATERIAL_MAP_ALBEDO].texture = waterTexture;
