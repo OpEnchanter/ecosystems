@@ -440,6 +440,7 @@ unsafe class Program()
         {
           organism clone = (organism)renderable.Clone();
           clone.organismPosition = p;
+          clone.traits.sex = (Program.random.Next(2) == 0) ? sex.Male : sex.Female;
           clone.traits.eyesight = (float)random.Next(3, 15);
           clone.traits.speed = (float)random.Next(1, 5) / 10;
           renderables.Add(clone);
@@ -536,12 +537,35 @@ unsafe class Program()
 
     int terrainThreshold = 245;
 
-    // Add details
-    loadingScreen($"Details | Load");
+    loadingScreen("Geographical Features");
+
+    // Ponds
     fluidSource pond = new fluidSource()
     {
       sourceType = fluidType.Water
     };
+
+    for (int i = 0; i < 150; i++)
+    {
+      loadingScreen($"Terrain | Pond {i} of 150");
+      Vector2 p = new Vector2(random.Next(-200, 200), random.Next(-200, 200));
+      bool canGenerate = Raylib.GetImageColor(*groundHeightmap, (int)MathF.Round((p.X + 200) / 400.0f * 1023), (int)MathF.Round((p.Y + 200) / 400.0f * 1023)).r > terrainThreshold;
+      while (!canGenerate)
+      {
+        p = new Vector2(random.Next(-200, 200), random.Next(-200, 200));
+        canGenerate = Raylib.GetImageColor(*groundHeightmap, (int)MathF.Round((p.X + 200) / 400.0f * 1023), (int)MathF.Round((p.Y + 200) / 400.0f * 1023)).r > terrainThreshold;
+      }
+      fluidSource pondClone = pond.Clone();
+      pondClone.position = new Vector3(p.X, -0.5f, p.Y);
+      renderables.Add(pondClone);
+      Raylib.ImageDrawCircle(groundHeightmap,
+      (int)MathF.Round((p.X + 200) / 400.0f * 1023),
+      (int)MathF.Round((p.Y + 200) / 400.0f * 1023),
+      4, new Color(185, 185, 185, 255));
+    }
+
+    // Add details
+    loadingScreen($"Details | Load");
 
     organism fox = new organism()
     {
@@ -582,34 +606,6 @@ unsafe class Program()
       { rabbit, 120 },
     }, *groundHeightmap, terrainThreshold);
 
-    // Add ponds
-    List<Vector2> ponds = new List<Vector2>();
-    for (int i = 0; i < 150; i++)
-    {
-      Vector2 p = new Vector2(random.Next(-200, 200), random.Next(-200, 200));
-      bool canGenerate = Raylib.GetImageColor(*groundHeightmap, (int)MathF.Round((p.X + 200) / 400.0f * 1023), (int)MathF.Round((p.Y + 200) / 400.0f * 1023)).r > terrainThreshold;
-      while (!canGenerate) {
-        p = new Vector2(random.Next(-200, 200), random.Next(-200, 200));
-        canGenerate = Raylib.GetImageColor(*groundHeightmap, (int)MathF.Round((p.X + 200) / 400.0f * 1023), (int)MathF.Round((p.Y + 200) / 400.0f * 1023)).r > terrainThreshold;
-      }
-      fluidSource pondClone = pond.Clone();
-      pondClone.position = new Vector3(p.X, -0.5f, p.Y);
-      ponds.Add(p);
-      renderables.Add(pondClone);
-    }
-
-    loadingScreen("Geographical Features");
-
-    // Ponds
-    foreach (Vector2 p in ponds)
-    {
-      loadingScreen($"Terrain | Pond {ponds.IndexOf(p)} of {ponds.Count()}");
-      Raylib.ImageDrawCircle(groundHeightmap,
-      (int)MathF.Round((p.X + 200) / 400.0f * 1023),
-      (int)MathF.Round((p.Y + 200) / 400.0f * 1023),
-      2, Raylib.GRAY);
-    }
-
 
     loadingScreen($"Terrain | Smoothing");
     Raylib.ImageBlurGaussian(groundHeightmap, 2);
@@ -641,8 +637,6 @@ unsafe class Program()
       mipmaps = 1,
       format = (int)PixelFormat.PIXELFORMAT_UNCOMPRESSED_R8G8B8A8
     };
-
-    Raylib.ExportImage(*groundImage, "./data/groundtex.png");
 
     Texture groundTexture = Raylib.LoadTextureFromImage(*groundImage);
     Model groundModel = Raylib.LoadModelFromMesh(Raylib.GenMeshHeightmap(*groundHeightmap, new Vector3(400.0f, 12.0f, 400.0f)));
@@ -747,11 +741,6 @@ unsafe class Program()
       // 3D
       Raylib.BeginMode3D(camera);
 
-      if (((JsonElement)config["debug"]).GetBoolean())
-      {
-        Raylib.DrawGrid(100, 1);
-      }
-
       // Update cycle
       foreach (basicRenderable renderable in renderables)
       {
@@ -782,6 +771,17 @@ unsafe class Program()
       }
 
       Raylib.EndMode3D();
+
+      // Water overlay
+      if (camera.position.Y < -1.0f)
+      {
+        float depth = (10 + camera.position.Y) / 10.0f;
+        if (depth < 0.15)
+        {
+          depth = 0.15f;
+        }
+        Raylib.DrawRectangle(0, 0, 640, 640, new Color((int)(35 * depth), (int)(137 * depth), (int)(218 * depth), 255 - (int)(120 * depth)));
+      }
 
       // Client
       if (Raylib.IsKeyPressed(KeyboardKey.KEY_TAB))
