@@ -543,10 +543,19 @@ unsafe class Program()
 
     // Ground
     Image* groundHeightmap = (Image*)Raylib.MemAlloc((uint)sizeof(Image));
-    *groundHeightmap = Raylib.GenImageColor(1024, 1024, Raylib.BLACK);
-    Raylib.ImageDrawCircle(groundHeightmap, 512, 512, 512, Raylib.WHITE);
+    *groundHeightmap = Raylib.GenImagePerlinNoise(1024, 1024, 0, 0, 5.0f);
+    Raylib.ImageDrawCircle(groundHeightmap, 512, 512, 196, Raylib.WHITE);
+    for (int i = 0; i < 50; i++)
+    {
+      Raylib.ImageDrawCircle(
+        groundHeightmap,
+        512 + Program.random.Next(-256, 256),
+        512 + Program.random.Next(-256, 256),
+        Program.random.Next(32, 128), Raylib.WHITE);
+    }
+    Raylib.ImageBlurGaussian(groundHeightmap, 10);
     Texture groundTexture = Raylib.LoadTextureFromImage(Raylib.GenImageColor(10, 10, Raylib.DARKGREEN));
-    Model groundModel = Raylib.LoadModelFromMesh(Raylib.GenMeshHeightmap(*groundHeightmap, new Vector3(100.0f, 6.0f, 100.0f)));
+    Model groundModel = Raylib.LoadModelFromMesh(Raylib.GenMeshHeightmap(*groundHeightmap, new Vector3(400.0f, 12.0f, 400.0f)));
     groundModel.materials[0].shader = lit;
     groundModel.materials[0].maps[(int)MaterialMapIndex.MATERIAL_MAP_ALBEDO].texture = groundTexture;
 
@@ -555,10 +564,10 @@ unsafe class Program()
 
     basicRenderable ground = new basicRenderable();
     ground.model = groundModel;
-    ground.position = new Vector3(-50.0f, -6.5f, -50.0f);
+    ground.position = new Vector3(-200.0f, -12.5f, -200.0f);
     renderables.Add(ground);
 
-    Texture waterTexture = Raylib.LoadTextureFromImage(Raylib.GenImageColor(1, 1, Raylib.BLUE));
+    Texture waterTexture = Raylib.LoadTextureFromImage(Raylib.GenImageColor(1, 1, new Color(15, 25, 215, 155)));
     Model waterModel = primShapes.plane(400, 400, 1, 1);
     waterModel.materials[0].shader = lit;
     waterModel.materials[0].maps[(int)MaterialMapIndex.MATERIAL_MAP_ALBEDO].texture = waterTexture;

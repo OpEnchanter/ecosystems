@@ -14,8 +14,7 @@ void main() {
   float luminance = diffuse+ambient;
 
   vec4 texColor = texture(texture0, fragTexCoord);
-  vec4 fragColor = texColor * luminance;
-  fragColor.w = 1.0;
+  vec4 fragColor = vec4(texColor.x * luminance, texColor.y * luminance, texColor.z * luminance, texColor.w);
 
   finalColor = fragColor;
 }
