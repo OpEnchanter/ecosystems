@@ -31,6 +31,9 @@ class basicRenderable()
   {
     RlGl.rlPushMatrix();
     RlGl.rlTranslatef(position.X, position.Y, position.Z);
+    RlGl.rlRotatef(eulerRotation.X, 1.0f, 0.0f, 0.0f);
+    RlGl.rlRotatef(eulerRotation.Y, 0.0f, 1.0f, 0.0f);
+    RlGl.rlRotatef(eulerRotation.Z, 0.0f, 0.0f, 1.0f);
     Raylib.DrawModel(model, Vector3.Zero, 1.0f, Raylib.RED);
     RlGl.rlPopMatrix();
   }
@@ -569,7 +572,7 @@ unsafe class Program()
       Raylib.ImageDrawCircle(groundHeightmap,
       (int)MathF.Round((p.X + 200) / 400.0f * 1023),
       (int)MathF.Round((p.Y + 200) / 400.0f * 1023),
-      2, Raylib.BLACK);
+      2, Raylib.GRAY);
     }
     loadingScreen($"Terrain | Secondary Blur");
     Raylib.ImageBlurGaussian(groundHeightmap, 2);
