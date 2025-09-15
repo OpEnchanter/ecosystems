@@ -405,6 +405,15 @@ unsafe class Program()
 
   public static float time = 0.0f;
 
+  static void loadingScreen(string part)
+  {
+    Raylib.BeginDrawing();
+    Raylib.ClearBackground(Raylib.BLACK);
+    Raylib.DrawText("Loading...", 260, 208, 32, Raylib.RAYWHITE);
+    Raylib.DrawText(part, 260, 248, 16, Raylib.RAYWHITE);
+    Raylib.EndDrawing();
+  }
+
   static void Main()
   {
     Raylib.SetConfigFlags(ConfigFlags.FLAG_MSAA_4X_HINT);
@@ -422,10 +431,14 @@ unsafe class Program()
       projection = (int)CameraProjection.CAMERA_PERSPECTIVE
     };
 
+    loadingScreen("Shaders");
+
     // Initialize shaders
     Shader lit = Raylib.LoadShader("./shader/lit.vs", "./shader/lit.fs");
 
     // Initialize renderables
+
+    loadingScreen("Organisms");
 
     // Rabbit organism
     Image brownImage = Raylib.GenImageColor(10, 10, Raylib.BROWN);
@@ -473,19 +486,8 @@ unsafe class Program()
     bush.traits.canMove = false;
 
     // Pond
-    Image blueImage = Raylib.GenImageColor(10, 10, Raylib.BLUE);
-    Texture bluetexture = Raylib.LoadTextureFromImage(blueImage);
-
-    Model pondModel = primShapes.plane(2, 2, 1, 1);
-    unsafe
-    {
-      pondModel.materials[0].maps[(int)MaterialMapIndex.MATERIAL_MAP_ALBEDO].texture = bluetexture;
-      pondModel.materials[0].shader = lit;
-    }
-
     fluidSource pond = new fluidSource()
     {
-      model = pondModel,
       sourceType = fluidType.Water
     };
 
@@ -533,13 +535,18 @@ unsafe class Program()
       renderables.Add(bushClone);
     }
 
+    loadingScreen("Geographical Features");
+
     // Add ponds
+    List<Vector2> ponds = new List<Vector2>();
     for (int i = 0; i < 80; i++)
     {
       fluidSource pondClone = pond.Clone();
       pondClone.position = new Vector3(random.Next(-50, 50), -0.5f, random.Next(-50, 50));
+      ponds.Add(new Vector2(pondClone.position.X, pondClone.position.Z));
       renderables.Add(pondClone);
     }
+
 
     // Ground
     Image* groundHeightmap = (Image*)Raylib.MemAlloc((uint)sizeof(Image));
@@ -547,13 +554,25 @@ unsafe class Program()
     Raylib.ImageDrawCircle(groundHeightmap, 512, 512, 196, Raylib.WHITE);
     for (int i = 0; i < 50; i++)
     {
+      loadingScreen($"Terrain | Landmass {i}");
       Raylib.ImageDrawCircle(
         groundHeightmap,
         512 + Program.random.Next(-256, 256),
         512 + Program.random.Next(-256, 256),
         Program.random.Next(32, 128), Raylib.WHITE);
     }
+    loadingScreen($"Terrain | Primary Blur");
     Raylib.ImageBlurGaussian(groundHeightmap, 10);
+    foreach (Vector2 p in ponds)
+    {
+      loadingScreen($"Terrain | Ponds {ponds.IndexOf(p)}");
+      Raylib.ImageDrawCircle(groundHeightmap,
+      (int)MathF.Round((p.X + 200) / 400.0f * 1023),
+      (int)MathF.Round((p.Y + 200) / 400.0f * 1023),
+      2, Raylib.BLACK);
+    }
+    loadingScreen($"Terrain | Secondary Blur");
+    Raylib.ImageBlurGaussian(groundHeightmap, 2);
     Texture groundTexture = Raylib.LoadTextureFromImage(Raylib.GenImageColor(10, 10, Raylib.DARKGREEN));
     Model groundModel = Raylib.LoadModelFromMesh(Raylib.GenMeshHeightmap(*groundHeightmap, new Vector3(400.0f, 12.0f, 400.0f)));
     groundModel.materials[0].shader = lit;
@@ -577,7 +596,7 @@ unsafe class Program()
     water.position = new Vector3(0.0f, -1.0f, 0.0f);
     renderables.Add(water);
 
-    
+
 
     bool menuOpen = false;
 
@@ -659,7 +678,7 @@ unsafe class Program()
 
       if (((JsonElement)config["debug"]).GetBoolean())
       {
-        Raylib.DrawGrid(100, 1); 
+        Raylib.DrawGrid(100, 1);
       }
 
       // Update cycle
