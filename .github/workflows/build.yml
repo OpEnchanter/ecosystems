@@ -25,10 +25,25 @@ jobs:
       - name: Publish EXE
         run: dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true
 
-      - name: Upload EXE artifact
+      - name: Copy published files to working directory
+        shell: pwsh
+        run: |
+          # Make sure the artifact directory exists
+          New-Item -ItemType Directory -Force -Path artifact
+
+          # Copy all .exe files
+          Get-ChildItem -Path . -Recurse -Filter *.exe | Where-Object { $_.FullName -like "*\bin\Release\net*\win-x64\publish\*.exe" } | Copy-Item -Destination artifact
+
+          # Copy all .dll files
+          Get-ChildItem -Path . -Recurse -Filter *.dll | Where-Object { $_.FullName -like "*\bin\Release\net*\win-x64\publish\*.dll" } | Copy-Item -Destination artifact
+
+          # Copy all files in shader subdirectories (preserves shader subfolder inside artifact)
+          Get-ChildItem -Path . -Recurse -Directory -Filter shader | Where-Object { $_.FullName -like "*\bin\Release\net*\win-x64\publish\shader" } | ForEach-Object {
+              Copy-Item "$($_.FullName)\*" "artifact\shader\" -Recurse -Force
+          }
+
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: executable
-          path: |
-            **/bin/Release/net*/win-x64/publish/*.exe
-            **/bin/Release/net*/win-x64/publish/*.dll
+          path: artifact/*
