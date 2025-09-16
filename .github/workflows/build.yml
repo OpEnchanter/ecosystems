@@ -52,6 +52,10 @@ jobs:
           name: v1.${{ github.run_number }}
           path: artifact/**
 
+      - name: Zip the artifact directory
+        shell: pwsh
+        run: Compress-Archive -Path artifact/* -DestinationPath artifact.zip
+
       - name: Create Github Release
         id: create_release
         uses: actions/create-release@v1
@@ -70,6 +74,6 @@ jobs:
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: artifact
+          asset_path: artifact.zip
           asset_name: artifact.zip
           asset_content_type: application/zip
