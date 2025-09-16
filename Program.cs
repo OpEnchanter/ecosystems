@@ -140,10 +140,19 @@ unsafe class organism : basicRenderable
   private void wander()
   {
     if (moving == false)
-    {
+    { 
       float angle = (float)(Program.random.NextDouble() * MathF.PI * 2); // 0 to 2π
       Vector2 localTarget = new Vector2(MathF.Cos(angle) * traits.eyesight, MathF.Sin(angle) * traits.eyesight);
-      target = organismPosition + localTarget;
+      Vector2 p = organismPosition + localTarget;
+      bool validPosition = Raylib.GetImageColor(Program.heightMap, (int)MathF.Round((p.X + 200) / 400.0f * 1023), (int)MathF.Round((p.Y + 200) / 400.0f * 1023)).r > Program.landThreshold;
+      while (!validPosition)
+      {
+        angle = (float)(Program.random.NextDouble() * MathF.PI * 2); // 0 to 2π
+        localTarget = new Vector2(MathF.Cos(angle) * traits.eyesight, MathF.Sin(angle) * traits.eyesight);
+        p = organismPosition + localTarget;
+        validPosition = Raylib.GetImageColor(Program.heightMap, (int)MathF.Round((p.X + 200) / 400.0f * 1023), (int)MathF.Round((p.Y + 200) / 400.0f * 1023)).r > Program.landThreshold;
+      }
+      target = p;
       moving = true;
     }
   }
@@ -386,13 +395,14 @@ class fluidSource : basicRenderable
 
 unsafe class Program()
 {
-
   public static List<basicRenderable> renderables = new List<basicRenderable>();
   public static List<basicRenderable> renderablesToRemove = new List<basicRenderable>();
   public static List<basicRenderable> renderablesToAdd = new List<basicRenderable>();
 
   public static Random random = new Random();
   public static Dictionary<string, object> config;
+  public static Image heightMap;
+  public static int landThreshold;
   public static Camera3D camera;
 
   static int countOrganisms(organismType type)
@@ -535,6 +545,7 @@ unsafe class Program()
     Raylib.ImageBlurGaussian(groundHeightmap, 10);
 
     int terrainThreshold = 245;
+    landThreshold = terrainThreshold;
 
     loadingScreen("Geographical Features");
 
@@ -562,6 +573,8 @@ unsafe class Program()
       (int)MathF.Round((p.Y + 200) / 400.0f * 1023),
       4, new Color(185, 185, 185, 255));
     }
+
+    heightMap = Raylib.ImageCopy(*groundHeightmap);
 
     // Add details
     loadingScreen($"Details | Load");
