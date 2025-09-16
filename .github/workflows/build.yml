@@ -1,4 +1,4 @@
-name: Build EXE on Commit
+name: Build EXE
 
 on:
   workflow_dispatch:
