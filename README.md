@@ -19,8 +19,13 @@ These are some examples of environments that have been generated within the simu
 ![Island](readme-resources/Island1.png)
 ![Island](readme-resources/Island2.png)
 
-
 ## Getting Started 🚀
+1. Download the `.zip` from the releases on this page.
+2. Unzip the file.
+3. Run the `.exe` (if prompted asking if you want to run the file click more options, then run anyway).
+
+## Compile from source 💾
+
 ### Prerequisites
 - **.NET**: Ensure that you have the .NET SDK installed on your computer.
 
