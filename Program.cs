@@ -743,7 +743,7 @@ unsafe class Program()
         cameraYaw += mouseDelta.X * mouseSens;
         cameraPitch -= mouseDelta.Y * mouseSens;
 
-        cameraPitch = Math.Clamp(cameraPitch, -80.0f, 80.0f);
+        cameraPitch = Math.Clamp(cameraPitch, -89.9f, 89.9f);
 
         Vector3 forward = new Vector3(
           MathF.Cos(cameraYaw * (MathF.PI / 180.0f)) * MathF.Cos(cameraPitch * (MathF.PI / 180.0f)),
