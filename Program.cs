@@ -492,7 +492,6 @@ unsafe class Program()
       rabbitModel.materials[0].shader = lit;
     }
 
-
     // Fox organism
     Image orangeImage = Raylib.GenImageColor(10, 10, Raylib.ORANGE);
     Texture orangetexture = Raylib.LoadTextureFromImage(orangeImage);
@@ -643,9 +642,6 @@ unsafe class Program()
     groundModel.materials[0].shader = lit;
     groundModel.materials[0].maps[(int)MaterialMapIndex.MATERIAL_MAP_ALBEDO].texture = groundTexture;
 
-    Raylib.UnloadImage(*groundHeightmap);
-    Raylib.MemFree(groundHeightmap);
-
     basicRenderable ground = new basicRenderable();
     ground.model = groundModel;
     ground.position = new Vector3(-200.0f, -12.5f, -200.0f);
@@ -695,7 +691,8 @@ unsafe class Program()
       {
         { "statistics", false },
         { "debug", false },
-        { "show_fps", false }
+        { "show_fps", false },
+        { "noclip", false }
       };
       string jsonText = JsonSerializer.Serialize(baseConfig);
       File.WriteAllText("./data/conf.json", jsonText);
@@ -711,6 +708,12 @@ unsafe class Program()
     List<Dictionary<organismType, int>> organismCounts = new List<Dictionary<organismType, int>>();
 
     bool loggingEnabled = ((JsonElement)config["statistics"]).GetBoolean();
+
+    float cameraYaw = 0.0f;
+    float cameraPitch = 0.0f;
+    float mouseSens = 0.1f;
+    float cameraSpeed = 0.2f;
+
 
     while (!Raylib.WindowShouldClose() && running)
     {
@@ -735,7 +738,50 @@ unsafe class Program()
 
       if (!menuOpen)
       {
-        Raylib.UpdateCamera(ref camera, CameraMode.CAMERA_FREE); // Update camera 
+        Vector2 mouseDelta = Raylib.GetMouseDelta();
+
+        cameraYaw += mouseDelta.X * mouseSens;
+        cameraPitch -= mouseDelta.Y * mouseSens;
+
+        cameraPitch = Math.Clamp(cameraPitch, -80.0f, 80.0f);
+
+        Vector3 forward = new Vector3(
+          MathF.Cos(cameraYaw * (MathF.PI / 180.0f)) * MathF.Cos(cameraPitch * (MathF.PI / 180.0f)),
+          MathF.Sin(cameraPitch * (MathF.PI / 180.0f)),
+          MathF.Sin(cameraYaw * (MathF.PI / 180.0f)) * MathF.Cos(cameraPitch * (MathF.PI / 180.0f))
+        );
+
+        forward = Vector3.Normalize(forward);
+
+        Vector3 right = Vector3.Normalize(Vector3.Cross(forward, new Vector3(0.0f, 1.0f, 0.0f)));
+
+        float frameCameraSpeed = cameraSpeed;
+        if (Raylib.IsKeyDown(KeyboardKey.KEY_LEFT_CONTROL))
+        {
+          frameCameraSpeed *= 2;
+        }
+
+        Vector3 movement = Vector3.Zero;
+        if (Raylib.IsKeyDown(KeyboardKey.KEY_W)) { movement += forward * frameCameraSpeed; }
+        if (Raylib.IsKeyDown(KeyboardKey.KEY_S)) { movement -= forward * frameCameraSpeed; }
+        if (Raylib.IsKeyDown(KeyboardKey.KEY_A)) { movement -= right * frameCameraSpeed; }
+        if (Raylib.IsKeyDown(KeyboardKey.KEY_D)) { movement += right * frameCameraSpeed; }
+        if (Raylib.IsKeyDown(KeyboardKey.KEY_LEFT_SHIFT)) { movement -= new Vector3(0.0f, 1.0f, 0.0f) * frameCameraSpeed; }
+        if (Raylib.IsKeyDown(KeyboardKey.KEY_SPACE)) { movement += new Vector3(0.0f, 1.0f, 0.0f) * frameCameraSpeed; }
+
+        if (!((JsonElement)config["noclip"]).GetBoolean())
+        {
+          float terrainHeight = Raylib.GetImageColor(*groundHeightmap,
+          (int)MathF.Round((camera.position.X + 200) / 400.0f * 1023),
+          (int)MathF.Round((camera.position.Z + 200) / 400.0f * 1023)).r / 255.0f * 12.0f - 12.0f;
+          if (camera.position.Y < terrainHeight)
+          {
+            camera.position.Y = terrainHeight;
+          }
+        }
+
+        camera.position += movement;
+        camera.target = camera.position + forward;
       }
 
       // 3D

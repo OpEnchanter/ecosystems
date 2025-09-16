@@ -1,73 +1,82 @@
-# Ecosystem Simulation
+# Ecosystem Simulation 🐇
+This is a basic ecosystem simulation game made with a Raylib port (Vinculum) in C#. It features different organisms that interact with eachother (ex. fox, rabbit, bush) as well as a random island generator for the play area and various features for understanding the simulation and logging results.
 
-This project is a simple ecosystem simulation written in C# using [Raylib-cs](https://github.com/ChrisDill/Raylib-cs) for 3D rendering. The simulation features organisms (rabbits, foxes, bushes) and fluid sources (ponds) interacting in a 3D environment.
+## Controls 🕹️
+### **Movement**
+  - **Forward** : `W`
+  - **Backward** : `S`
+  - **Left** : `A`
+  - **Right** : `D`
+  - **Down** : `Left Control`
+  - **Up** : `Space`
+  - **Sprint** : `Shift`
+### **Menu**
+  - **Open menu** : `Tab`
+  - **Use the menu**: The menu has options for logging data, quitting the game, turning on debug mode and turning on cheats.
 
-## Features
+## Examples 📃
+These are some examples of environments that have been generated within the simulation.
+![Island](readme-resources/Island1.png)
+![Island](readme-resources/Island2.png)
 
-- **Organisms:**  
-  - Rabbits, foxes, and bushes, each with their own traits and stats.
-  - Organisms move, seek food and water, and lose health if they can't find resources.
-  - Foxes hunt rabbits, rabbits eat bushes, and all can seek water from ponds.
 
-- **Environment:**  
-  - Randomly placed organisms and ponds on a grid.
-  - 3D camera controls using Raylib's free camera mode.
-  - Simple 3D models for each entity.
-
-## Controls
-
-- **Mouse:** Move the camera (free camera mode).
-- **Tab:** Open the menu
-- **W,A,S,D:** Move
-- **Left Control:** Descend
-- **Space:** Ascend
-
-## Menu
-The menu allows for easy configuration of the game. Users can enable and disable certain features such as population logging (statistics). Note that settins only apply when the game is restarted and are only saved when the game is quit. The quit button is also located in the menu.
-
-## Getting Started
-
+## Getting Started 🚀
 ### Prerequisites
+- **.NET**: Ensure that you have the .NET SDK installed on your computer.
 
-- [.NET 6.0+ SDK](https://dotnet.microsoft.com/download)
-- [Raylib-cs](https://github.com/ChrisDill/Raylib-cs) NuGet package
+### Run the simulation
+1. Clone the repository
+```bash
+git clone https://github.com/OpEnchanter/ecosystems.git
+```
+2. Navigate to the project's directory
+```bash
+cd ecosystems
+```
+3. Build and run
+```bash
+dotnet run
+```
 
-### Running the Simulation
+## Code examples
+If you want to modify the simulation to add your own personal organisms you can create the organism and make it spawn by modifying `Program.cs`.
 
-1. Clone this repository:
-   ```sh
-   git clone https://github.com/OpEnchanter/ecosystems.git
-   cd ecosystems
-   ```
-2. Restore dependencies:
-   ```sh
-   dotnet restore
-   ```
-3. Build and run:
-   ```sh
-   dotnet run
-   ```
+> **Note**: You should have a decent understanding of `C#` before attempting to modify the code.
 
-## Project Structure
+### Load the model
+Load the organism's model and texture and use them.
+```cs
+Image image = Raylib.LoadImage("texture.png"); // Load the texture as an Image
+Texture texture = Raylib.LoadTextureFromImage(image); // Load Texture from image
 
-- `Program.cs` — Main simulation logic, rendering, and entity definitions.
-- `.gitignore` — Standard C# and VS Code ignores.
+Model model = Raylib.LoadModelFromMesh("model.obj"); // Load model
+model.materials[0].maps[(int)MaterialMapIndex.MATERIAL_MAP_ALBEDO].texture = texture; // Apply texture to model
+model.materials[0].shader = lit; // Apply lit shader to model
+```
 
-## How It Works
+### Create the organism
+Create a new organism and give it a model and position, then modify it's traits (note that it will evolve and the traits will change).
+```cs
+Organism organism = new Organism() {
+  model = model;
+  organismPosition = new Vector3(0,0,0);
+} // Create and organism with a model and position
+// Modify organism traits
+organism.traits.eyesight = 10.0f;
+organism.traits.speed = 1.0f;
+organism.traits.oType = organismType.CustomOrganism; // A new organism type must be added to the organismType enum
+organism.traits.foodSources = new organismType[] { organismType.Bush }; // What the organism can eat
+organism.traits.hydrationSources = new fluidType[] { fluidType.Water }; // How the organism can get hydration
+```
 
-- **Organisms** have traits (speed, eyesight, food/hydration sources) and stats (food, hydration, health).
-- Each update, organisms:
-  - Wander randomly if healthy.
-  - Seek food or water if low on resources.
-  - Lose health if starving or dehydrated.
-  - Are removed from the simulation if health reaches zero.
-- **Rendering** uses Raylib-cs to draw simple spheres and planes for entities.
-
-## Customization
-
-- Add new organism types or behaviors by extending the `organism` class.
-- Adjust population sizes or traits in `Program.cs` for different simulation dynamics.
-
-## License
-
-This project is open source and available
+### Make the organism spawn
+Modify the function call beginning on line 601 to include a number and reference to your organism.
+```cs
+placeFeatures(new Dictionary<basicRenderable, int>
+{
+  { bush, 150 },
+  { fox, 120 },
+  { rabbit, 120 },
+  { organism, 400} // This will spawn 400 of organism on the island
+}, *groundHeightmap, terrainThreshold);
+```
