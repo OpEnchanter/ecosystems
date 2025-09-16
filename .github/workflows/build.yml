@@ -31,3 +31,4 @@ jobs:
           name: executable
           path: |
             **/bin/Release/net*/win-x64/publish/*.exe
+            **/bin/Release/net*/win-x64/publish/*.dll
