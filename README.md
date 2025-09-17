@@ -29,6 +29,12 @@ These prerequisites can be installed with
 pip install pandas matplotlib
 ```
 
+The graph can be loaded and run with
+```pwsh
+cd ./plot/python
+python main.py
+```
+
 ## Examples 📃
 These are some examples of environments that have been generated within the simulation.
 ![Island](readme-resources/Island1.png)
