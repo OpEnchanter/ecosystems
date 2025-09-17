@@ -10,9 +10,12 @@ This is a basic ecosystem simulation game made with a Raylib port (Vinculum) in 
   - **Down** : `Left Control`
   - **Up** : `Space`
   - **Sprint** : `Shift`
-### **Menu**
+  - **Interact**: `Left Click`
+### **Menus**
   - **Open menu** : `Tab`
   - **Use the menu**: The menu has options for logging data, quitting the game, turning on debug mode and turning on cheats.
+  - **Open god menu**: `Left click on organism`
+  - **Use god meny**: The god menu allows you to interact with organisms such as killing them feeding them and hydrating them.
 
 ## Examples 📃
 These are some examples of environments that have been generated within the simulation.
