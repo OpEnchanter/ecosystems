@@ -22,16 +22,16 @@ jobs:
       - name: Build project
         run: dotnet build --configuration Release
 
-      - name: Publish EXE
+      - name: Publish Windows EXE
         run: dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true
 
-      - name: Copy published files to artifact directory
+      - name: Copy published windows files to win64 directory
         shell: pwsh
         run: |
-          New-Item -ItemType Directory -Force -Path artifact
+          New-Item -ItemType Directory -Force -Path win64
 
           # Find all publish directories
-          $publishDirs = Get-ChildItem -Path . -Recurse -Directory -Filter publish
+          $publishDirs = Get-ChildItem -Path ./bin/Release/net9.0/win-x64 -Recurse -Directory -Filter publish
 
           foreach ($dir in $publishDirs) {
             # Copy all .exe files
@@ -42,7 +42,7 @@ jobs:
 
             # Copy shader folder if it exists
             if (Test-Path "$($dir.FullName)\shader") {
-              Copy-Item -Path "$($dir.FullName)\shader" -Destination artifact -Recurse -Force
+              Copy-Item -Path "$($dir.FullName)\shader" -Destination win64 -Recurse -Force
             }
           }
 
@@ -50,11 +50,47 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ github.run_number }}
-          path: artifact/**
+          path: win64/**
 
       - name: Zip the artifact directory
         shell: pwsh
-        run: Compress-Archive -Path artifact/* -DestinationPath artifact.zip
+        run: Compress-Archive -Path win64/* -DestinationPath win64.zip
+
+
+      - name: Publish MacOS
+        run: dotnet publish -c Release -r osx-x64 --self-contained true -p:PublishSingleFile=true
+
+      - name: Copy published windows files to osx64 directory
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path osx64
+
+          # Find all publish directories
+          $publishDirs = Get-ChildItem -Path ./bin/Release/net9.0/osx-x64 -Recurse -Directory -Filter publish
+
+          foreach ($dir in $publishDirs) {
+            # Copy all .exe files
+            Copy-Item -Path "$($dir.FullName)\*.exe" -Destination artifact -Force -ErrorAction Ignore
+
+            # Copy all .dll files
+            Copy-Item -Path "$($dir.FullName)\*.dll" -Destination artifact -Force -ErrorAction Ignore
+
+            # Copy shader folder if it exists
+            if (Test-Path "$($dir.FullName)\shader") {
+              Copy-Item -Path "$($dir.FullName)\shader" -Destination osx64 -Recurse -Force
+            }
+          }
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ github.run_number }}
+          path: osx64/**
+
+      - name: Zip the artifact directory
+        shell: pwsh
+        run: Compress-Archive -Path osx64/* -DestinationPath osx64.zip
+
 
       - name: Create Github Release
         id: create_release
@@ -65,6 +101,9 @@ jobs:
           body: |
             Automated build.
             - Build version: v1.${{ github.run_number }}
+
+            Download the .zip file corresponding to your os.
+            ex. win64 for Windows, mac64 for MacOS.
           draft: false
           prerelease: false
         env:
@@ -73,7 +112,15 @@ jobs:
       - name: Upload Release Asset
         uses: softprops/action-gh-release@v1
         with:
-          files: artifact.zip
+          files: win64.zip
+          tag_name: ${{ github.run_number }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Release Asset
+        uses: softprops/action-gh-release@v1
+        with:
+          files: osx64.zip
           tag_name: ${{ github.run_number }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -96,7 +96,7 @@ unsafe class Program()
     loadingScreen("Shaders");
 
     // Initialize shaders
-    Shader lit = Raylib.LoadShader("./shader/lit.vs", "./shader/lit.fs");
+    Shader lit = Raylib.LoadShader("./shader/lit_vert.glsl", "./shader/lit_frag.glsl");
 
     // Initialize textures
 
