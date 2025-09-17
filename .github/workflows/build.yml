@@ -103,13 +103,13 @@ jobs:
             - Build version: v1.${{ github.run_number }}
 
             Download the .zip file corresponding to your os.
-            ex. win64 for Windows, mac64 for MacOS.
+            ex. win64 for Windows, osx64 for MacOS.
           draft: false
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
-      - name: Upload Release Asset
+      - name: Upload Windows Release Asset
         uses: softprops/action-gh-release@v1
         with:
           files: win64.zip
@@ -117,7 +117,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload Release Asset
+      - name: Upload MacOS Release Asset
         uses: softprops/action-gh-release@v1
         with:
           files: osx64.zip
