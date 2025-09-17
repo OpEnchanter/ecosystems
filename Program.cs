@@ -367,7 +367,7 @@ unsafe class Program()
 
       if (!menuOpen && !godMenuOpen)
       {
-        if (menuOpen != lastMenuOpen && godMenuOpen != lastGodMenuOpen)
+        if (menuOpen != lastMenuOpen || godMenuOpen != lastGodMenuOpen)
         {
           Raylib.DisableCursor();
         }
@@ -418,7 +418,10 @@ unsafe class Program()
       }
       else
       {
-        Raylib.EnableCursor();
+        if (menuOpen != lastMenuOpen || godMenuOpen != lastGodMenuOpen)
+        {
+          Raylib.EnableCursor();
+        }
       }
 
       lastMenuOpen = menuOpen;
@@ -471,8 +474,8 @@ unsafe class Program()
         }
       }
 
-      organism nearestHighlight = null;
-      float nearestHighlightDist = 0.0f;
+      organism targetedOrganism = null;
+      float targetedOrganismDist = 0.0f;
       foreach (organism o in nearbyOrganisms)
       {
         Vector3 vec = -Vector3.Normalize(new Vector3(
@@ -488,25 +491,52 @@ unsafe class Program()
         float dot = Math.Clamp(
           Vector3.Dot(vec, camLook), 0, 1
         );
-        if (dot > 0.90 && dot > nearestHighlightDist)
+        if (dot > 0.90 && dot > targetedOrganismDist)
         {
-          nearestHighlight = o;
+          targetedOrganism = o;
         }
       }
 
-      if (nearestHighlight != null)
+      if (targetedOrganism != null)
       {
-        if (Raylib.IsMouseButtonDown(MouseButton.MOUSE_BUTTON_LEFT))
+        if (Raylib.IsMouseButtonDown(MouseButton.MOUSE_BUTTON_LEFT) && !menuOpen)
         {
           if (!godMenuOpen)
           {
             godMenuOpen = true;
           }
         }
-        Raylib.DrawSphere(nearestHighlight.position, 1.15f, new Color(15, 155, 200, 155));
+        Raylib.DrawSphere(targetedOrganism.position, 1.15f, new Color(15, 155, 200, 155));
       }
 
       Raylib.EndMode3D();
+
+      // God menu
+      if (godMenuOpen)
+      {
+        int w = 480;
+        int h = 64;
+        int x = 320 - w / 2;
+        int y = 480 - h;
+        Raylib.DrawRectangle(x, y, w, h, Raylib.BLACK);
+        if (RayGui.GuiButton(new Rectangle(x + 16, y + 16, 64, 32), "Kill") == 1)
+        {
+          targetedOrganism.stats.health = -100.0f;
+          godMenuOpen = false;
+        }
+
+        if (RayGui.GuiButton(new Rectangle(x + 16*2 + 64, y + 16, 64, 32), "Feed") == 1)
+        {
+          targetedOrganism.stats.food = 10.0f;
+          godMenuOpen = false;
+        }
+
+        if (RayGui.GuiButton(new Rectangle(x + 16*3 + 64*2, y + 16, 64, 32), "Hydrate") == 1)
+        {
+          targetedOrganism.stats.hydration = 10.0f;
+          godMenuOpen = false;
+        }
+      }
 
       // Water overlay
       if (camera.position.Y < -1.0f)
