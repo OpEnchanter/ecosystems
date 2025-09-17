@@ -33,8 +33,7 @@ pip install pandas matplotlib
 
 The graph can be loaded and run with
 ```pwsh
-cd ./plot/python
-python main.py
+python ./plot/main.py
 ```
 
 ## Examples 📃
@@ -54,15 +53,15 @@ These are some examples of environments that have been generated within the simu
 
 ### Run the simulation
 1. Clone the repository
-```bash
+```pwsh
 git clone https://github.com/OpEnchanter/ecosystems.git
 ```
 2. Navigate to the project's directory
-```bash
+```pwsh
 cd ecosystems
 ```
 3. Build and run
-```bash
+```pwsh
 dotnet run
 ```
 
@@ -108,3 +107,10 @@ placeFeatures(new Dictionary<basicRenderable, int>
   { organism, 400} // This will spawn 400 of organism on the island
 }, *groundHeightmap, terrainThreshold);
 ```
+
+## Code line count 🧮
+If you want to check how many lines of code there are in the project (either if you are curious or you made an addition) you can run the command
+```pwsh
+cloc ./ --include-lang=C#,Python
+```
+This is assuming you have `cloc.exe` somewhere on your computer and it is added to your `PATH`

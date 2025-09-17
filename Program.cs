@@ -63,6 +63,7 @@ unsafe class Program()
           clone.traits.sex = (Program.random.Next(2) == 0) ? sex.Male : sex.Female;
           clone.traits.eyesight = (float)random.Next(3, 15);
           clone.traits.speed = (float)random.Next(1, 5) / 10;
+          clone.animationTimeOffset = random.Next(0, 30) / 10.0f;
           renderables.Add(clone);
         }
         else

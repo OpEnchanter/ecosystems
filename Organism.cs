@@ -111,8 +111,8 @@ unsafe class organism : basicRenderable
   }
 
   private float animationBounceSpeed = 0.1f;
-  private float animationBounceHeight = 0.25f;
-  private float animationTimeOffset = 0.0f;
+  public float animationBounceHeight = 0.25f;
+  public float animationTimeOffset = 0.0f;
 
   public organism()
   {
@@ -127,7 +127,7 @@ unsafe class organism : basicRenderable
     stats.matingTimer -= Program.random.Next(0, 2);
     if (traits.canMove == true)
     {
-      if (stats.food >= 3.0f && stats.hydration >= 3.0f)
+      if (stats.food >= 3.0f && stats.hydration >= 5.0f)
       {
         if (stats.matingTimer <= 0)
         {
@@ -214,7 +214,7 @@ unsafe class organism : basicRenderable
             }
           }
 
-          if (nearestFoodSourceDist < 0.5 && nearestFoodSource != null)
+          if (nearestFoodSource != null && nearestFoodSourceDist < 1)
           {
             // Eat food
             nearestFoodSource.stats.health -= 10.0f;
@@ -233,7 +233,7 @@ unsafe class organism : basicRenderable
             
           }
         }
-        if (stats.hydration < 3.0f)
+        if (stats.hydration < 5.0f)
         {
           // Find fluid
           float nearestFluidSourceDist = float.PositiveInfinity;
@@ -255,9 +255,19 @@ unsafe class organism : basicRenderable
             }
           }
 
-          if (nearestFluidSourceDist < 0.5 && nearestFluidSource != null)
+          if (nearestFluidSource != null && nearestFluidSourceDist < 0.5)
           {
             stats.hydration = 10.0f;
+          }
+
+          if (nearestFluidSource != null)
+          {
+            target = new Vector2(nearestFluidSource.position.X, nearestFluidSource.position.Z);
+            moving = true;
+          }
+          else
+          {
+            wander();
           }
         }
       }
