@@ -2,8 +2,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 data = pd.read_csv("../../data/out/log.csv")
 
-print(data)
-
 plt.figure(figsize=(10,6))
 plt.plot(data["Time"], data["Foxes"], label="Foxes")
 plt.plot(data["Time"], data["Rabbits"], label="Rabbits")
