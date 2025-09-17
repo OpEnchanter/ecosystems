@@ -74,5 +74,6 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: artifact.zip
+          tag_name: v1.${{ github.run_number }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
