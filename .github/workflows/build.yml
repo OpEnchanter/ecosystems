@@ -69,11 +69,8 @@ jobs:
           $publishDirs = Get-ChildItem -Path ./bin/Release/net9.0/osx-x64 -Recurse -Directory -Filter publish
 
           foreach ($dir in $publishDirs) {
-            # Copy all .exe files
-            Copy-Item -Path "$($dir.FullName)\ecosystems" -Destination osx64 -Force -ErrorAction Ignore
-
-            # Copy all .dll files
-            Copy-Item -Path "$($dir.FullName)\*.dll" -Destination osx64 -Force -ErrorAction Ignore
+            # Copy all files
+            Copy-Item -Path "$($dir.FullName)\*" -Destination osx64 -Force -ErrorAction Ignore
 
             # Copy shader folder if it exists
             if (Test-Path "$($dir.FullName)\shader") {
