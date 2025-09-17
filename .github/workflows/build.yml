@@ -46,13 +46,13 @@ jobs:
             }
           }
 
-      - name: Upload artifact
+      - name: Upload win64
         uses: actions/upload-artifact@v4
         with:
           name: ${{ github.run_number }}
           path: win64/**
 
-      - name: Zip the artifact directory
+      - name: Zip the win64 directory
         shell: pwsh
         run: Compress-Archive -Path win64/* -DestinationPath win64.zip
 
@@ -81,13 +81,13 @@ jobs:
             }
           }
 
-      - name: Upload artifact
+      - name: Upload osx64
         uses: actions/upload-artifact@v4
         with:
           name: ${{ github.run_number }}
           path: osx64/**
 
-      - name: Zip the artifact directory
+      - name: Zip the osx64 directory
         shell: pwsh
         run: Compress-Archive -Path osx64/* -DestinationPath osx64.zip
 
