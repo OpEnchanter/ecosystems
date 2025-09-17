@@ -70,10 +70,10 @@ jobs:
 
           foreach ($dir in $publishDirs) {
             # Copy all .exe files
-            Copy-Item -Path "$($dir.FullName)\*.exe" -Destination artifact -Force -ErrorAction Ignore
+            Copy-Item -Path "$($dir.FullName)\ecosystems" -Destination osx64 -Force -ErrorAction Ignore
 
             # Copy all .dll files
-            Copy-Item -Path "$($dir.FullName)\*.dll" -Destination artifact -Force -ErrorAction Ignore
+            Copy-Item -Path "$($dir.FullName)\*.dll" -Destination osx64 -Force -ErrorAction Ignore
 
             # Copy shader folder if it exists
             if (Test-Path "$($dir.FullName)\shader") {
