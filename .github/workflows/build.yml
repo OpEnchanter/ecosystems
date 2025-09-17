@@ -49,7 +49,7 @@ jobs:
       - name: Upload win64
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ github.run_number }}
+          name: ${{ github.run_number }} win64
           path: win64/**
 
       - name: Zip the win64 directory
@@ -84,7 +84,7 @@ jobs:
       - name: Upload osx64
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ github.run_number }}
+          name: ${{ github.run_number }} osx64
           path: osx64/**
 
       - name: Zip the osx64 directory
