@@ -69,6 +69,7 @@ unsafe class Program()
         {
           basicRenderable clone = renderable.Clone();
           clone.position = new Vector3(p.X, 0, p.Y);
+          clone.eulerRotation = new Vector3(0, random.Next(0, 360), 0);
           renderables.Add(clone);
         }
       }
@@ -225,7 +226,7 @@ unsafe class Program()
     {
       { bush, 150 },
       { fox, 120 },
-      { rabbit, 120 },
+      { rabbit, 120 }
     }, *groundHeightmap, terrainThreshold);
 
 
@@ -337,6 +338,11 @@ unsafe class Program()
     float mouseSens = 0.1f;
     float cameraSpeed = 0.2f;
 
+    bool godMenuOpen = false;
+
+    bool lastMenuOpen = false;
+    bool lastGodMenuOpen = false;
+
 
     while (!Raylib.WindowShouldClose() && running)
     {
@@ -359,8 +365,12 @@ unsafe class Program()
       Raylib.BeginDrawing();
       Raylib.ClearBackground(Raylib.RAYWHITE);
 
-      if (!menuOpen)
+      if (!menuOpen && !godMenuOpen)
       {
+        if (menuOpen != lastMenuOpen && godMenuOpen != lastGodMenuOpen)
+        {
+          Raylib.DisableCursor();
+        }
         Vector2 mouseDelta = Raylib.GetMouseDelta();
 
         cameraYaw += mouseDelta.X * mouseSens;
@@ -406,6 +416,13 @@ unsafe class Program()
         camera.position += movement;
         camera.target = camera.position + forward;
       }
+      else
+      {
+        Raylib.EnableCursor();
+      }
+
+      lastMenuOpen = menuOpen;
+      lastGodMenuOpen = godMenuOpen;
 
       // 3D
       Raylib.BeginMode3D(camera);
@@ -417,7 +434,10 @@ unsafe class Program()
         if (renderable is organism)
         {
           organism renderableOrganism = (organism)renderable;
-          renderableOrganism.Update();
+          if (!godMenuOpen)
+          {
+            renderableOrganism.Update();
+          }
         }
       }
 
@@ -439,6 +459,53 @@ unsafe class Program()
         renderablesToAdd.Clear();
       }
 
+      List<organism> nearbyOrganisms = new List<organism>();
+      foreach (basicRenderable renderable in renderables)
+      {
+        if (renderable is organism && new Vector3(
+          renderable.position.X - camera.position.X,
+          renderable.position.Y - camera.position.Y,
+          renderable.position.Z - camera.position.Z).Length() < 5)
+        {
+          nearbyOrganisms.Add((organism)renderable);
+        }
+      }
+
+      organism nearestHighlight = null;
+      float nearestHighlightDist = 0.0f;
+      foreach (organism o in nearbyOrganisms)
+      {
+        Vector3 vec = -Vector3.Normalize(new Vector3(
+          camera.position.X - o.position.X,
+          camera.position.Y - o.position.Y,
+          camera.position.Z - o.position.Z
+        ));
+        Vector3 camLook = Vector3.Normalize(new Vector3(
+          camera.target.X - camera.position.X,
+          camera.target.Y - camera.position.Y,
+          camera.target.Z - camera.position.Z
+        ));
+        float dot = Math.Clamp(
+          Vector3.Dot(vec, camLook), 0, 1
+        );
+        if (dot > 0.90 && dot > nearestHighlightDist)
+        {
+          nearestHighlight = o;
+        }
+      }
+
+      if (nearestHighlight != null)
+      {
+        if (Raylib.IsMouseButtonDown(MouseButton.MOUSE_BUTTON_LEFT))
+        {
+          if (!godMenuOpen)
+          {
+            godMenuOpen = true;
+          }
+        }
+        Raylib.DrawSphere(nearestHighlight.position, 1.15f, new Color(15, 155, 200, 155));
+      }
+
       Raylib.EndMode3D();
 
       // Water overlay
@@ -456,15 +523,6 @@ unsafe class Program()
       if (Raylib.IsKeyPressed(KeyboardKey.KEY_TAB))
       {
         menuOpen = !menuOpen;
-
-        if (menuOpen)
-        {
-          Raylib.EnableCursor();
-        }
-        else
-        {
-          Raylib.DisableCursor();
-        }
       }
 
       if (menuOpen)
