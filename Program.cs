@@ -186,51 +186,6 @@ unsafe class Program()
       4, new Color(185, 185, 185, 255));
     }
 
-    heightMap = Raylib.ImageCopy(*groundHeightmap);
-
-    // Add details
-    loadingScreen($"Details | Load");
-
-    organism fox = new organism()
-    {
-      model = foxModel,
-      position = new Vector3(0.0f, 0.0f, 5.0f)
-    };
-
-    fox.traits.oType = organismType.Fox;
-    fox.traits.foodSources = new organismType[] { organismType.Rabbit };
-    fox.traits.hydrationSources = new fluidType[] { fluidType.Water };
-
-    organism rabbit = new organism()
-    {
-      model = rabbitModel,
-      position = new Vector3(0.0f, 0.0f, 5.0f)
-    };
-
-    rabbit.traits.oType = organismType.Rabbit;
-    rabbit.traits.foodSources = new organismType[] { organismType.Bush };
-    rabbit.traits.hydrationSources = new fluidType[] { fluidType.Water };
-
-    organism bush = new organism()
-    {
-      model = bushModel,
-      position = new Vector3(0.0f, 0.0f, 0.0f),
-    };
-
-    bush.stats.health = 30.0f;
-    bush.stats.maxHealth = 30.0f;
-    bush.traits.oType = organismType.Bush;
-    bush.traits.canMove = false;
-    
-    loadingScreen($"Details | Place");
-    placeFeatures(new Dictionary<basicRenderable, int>
-    {
-      { bush, 150 },
-      { fox, 120 },
-      { rabbit, 120 }
-    }, *groundHeightmap, terrainThreshold);
-
-
     loadingScreen($"Terrain | Smoothing");
     Raylib.ImageBlurGaussian(groundHeightmap, 2);
 
@@ -281,6 +236,51 @@ unsafe class Program()
     water.model = waterModel;
     water.position = new Vector3(0.0f, -1.0f, 0.0f);
     renderables.Add(water);
+
+
+    heightMap = Raylib.ImageCopy(*groundHeightmap);
+
+    // Add details
+    loadingScreen($"Details | Load");
+
+    organism fox = new organism()
+    {
+      model = foxModel,
+      position = new Vector3(0.0f, 0.0f, 5.0f)
+    };
+
+    fox.traits.oType = organismType.Fox;
+    fox.traits.foodSources = new organismType[] { organismType.Rabbit };
+    fox.traits.hydrationSources = new fluidType[] { fluidType.Water };
+
+    organism rabbit = new organism()
+    {
+      model = rabbitModel,
+      position = new Vector3(0.0f, 0.0f, 5.0f)
+    };
+
+    rabbit.traits.oType = organismType.Rabbit;
+    rabbit.traits.foodSources = new organismType[] { organismType.Bush };
+    rabbit.traits.hydrationSources = new fluidType[] { fluidType.Water };
+
+    organism bush = new organism()
+    {
+      model = bushModel,
+      position = new Vector3(0.0f, 0.0f, 0.0f),
+    };
+
+    bush.stats.health = 30.0f;
+    bush.stats.maxHealth = 30.0f;
+    bush.traits.oType = organismType.Bush;
+    bush.traits.canMove = false;
+    
+    loadingScreen($"Details | Place");
+    placeFeatures(new Dictionary<basicRenderable, int>
+    {
+      { bush, 150 },
+      { fox, 120 },
+      { rabbit, 120 }
+    }, *groundHeightmap, terrainThreshold);
 
 
 

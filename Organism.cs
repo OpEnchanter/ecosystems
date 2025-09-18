@@ -245,7 +245,7 @@ unsafe class organism : basicRenderable
               fluidSource fluid = (fluidSource)renderable;
               if (traits.hydrationSources.Contains(fluid.sourceType))
               {
-                float distance = new Vector2(fluid.position.X - position.X, fluid.position.Y - position.Y).Length();
+                float distance = new Vector2(fluid.position.X - position.X, fluid.position.Z - position.Z).Length();
                 if (distance <= traits.eyesight && distance < nearestFluidSourceDist)
                 {
                   nearestFluidSourceDist = distance;
@@ -270,6 +270,13 @@ unsafe class organism : basicRenderable
             wander();
           }
         }
+      }
+
+      if (((JsonElement)Program.config["debug"]).GetBoolean())
+      {
+        Vector3 p = new Vector3(target.X, 1.5f, target.Y);
+        Raylib.DrawSphere(p, 0.25f, Raylib.GREEN);
+        Raylib.DrawLine3D(position, p, Raylib.GREEN);
       }
 
       // Decrement stats
