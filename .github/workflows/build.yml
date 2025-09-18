@@ -16,7 +16,7 @@ jobs:
         with:
           dotnet-version: '9.0.304'   # Use your .NET version
 
-      - name: Notify ntfy on success
+      - name: Notify ntfy on start
         if: ${{ success() }}
         run: |
           curl -H "Title: ℹ️ Build Started" -d "Project ecosystems build as started" "${{ secrets.NTFY_URL }}"
