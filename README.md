@@ -2,6 +2,7 @@
 This is a basic ecosystem simulation game made with a Raylib port (Vinculum) in C#. It features different organisms that interact with eachother (ex. fox, rabbit, bush) as well as a random island generator for the play area and various features for understanding the simulation and logging results.
 ## Repository Stats 📊
 [![Build & Publish](https://github.com/OpEnchanter/ecosystems/actions/workflows/build.yml/badge.svg)](https://github.com/OpEnchanter/ecosystems/actions/workflows/build.yml)
+[![wakatime](https://wakatime.com/badge/user/98f6777a-987b-4ee6-8815-04a0d8ae8626/project/2e3ef99d-2602-4d64-9470-7c536294cd83.svg)](https://wakatime.com/badge/user/98f6777a-987b-4ee6-8815-04a0d8ae8626/project/2e3ef99d-2602-4d64-9470-7c536294cd83)
 
 ## Controls 🕹️
 ### **Movement**
