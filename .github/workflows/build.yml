@@ -121,3 +121,17 @@ jobs:
           tag_name: ${{ github.run_number }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Notify ntfy on success
+        if: ${{ success() }}
+        run: |
+          curl -H "Title: ✅ Build Succeeded" \
+               -d "Project ecosystems was successfully built and published" \
+               "${{ secrets.NTFY_URL }}"
+
+      - name: Notify ntfy on failure
+        if: ${{ failure() }}
+        run: |
+          curl -H "Title: ❌ Build Failed" \
+               -d "Project ecosystems failed to be built and published" \
+               "${{ secrets.NTFY_URL }}"
