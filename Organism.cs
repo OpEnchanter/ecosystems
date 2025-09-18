@@ -180,6 +180,7 @@ unsafe class organism : basicRenderable
                 organism child = this.Clone();
                 child.traits.eyesight = (traits.eyesight + nearestMate.traits.eyesight) / 2;
                 child.traits.speed = (traits.speed + nearestMate.traits.speed) / 2;
+                child.traits.sex = (Program.random.Next(2) == 0) ? sex.Male : sex.Female;
                 Program.renderablesToAdd.Add(child);
               }
             }
