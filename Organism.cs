@@ -278,9 +278,15 @@ unsafe class organism : basicRenderable
 
       if (((JsonElement)Program.config["debug"]).GetBoolean())
       {
-        Vector3 p = new Vector3(target.X, 1.5f, target.Y);
-        Raylib.DrawSphere(p, 0.25f, Raylib.GREEN);
-        Raylib.DrawLine3D(position, p, Raylib.GREEN);
+        if (new Vector3(
+          position.X - Program.camera.position.X,
+          position.Y - Program.camera.position.Y,
+          position.Z - Program.camera.position.Z).Length() < 30.0f)
+        {
+            Vector3 p = new Vector3(target.X, 1.5f, target.Y);
+            Raylib.DrawSphere(p, 0.25f, Raylib.GREEN);
+            Raylib.DrawLine3D(position, p, Raylib.GREEN); 
+        }
       }
 
       // Decrement stats
