@@ -70,7 +70,9 @@ jobs:
 
           foreach ($dir in $publishDirs) {
             # Copy all files
-            Copy-Item -Path "$($dir.FullName)\*" -Destination osx64 -Force -ErrorAction Ignore
+            Copy-Item "$($dir.FullName)\*.dylib" -Destination osx64 -Force -ErrorAction Ignore
+            Copy-Item "$($dir.FullName)\*.dll" -Destination osx64 -Force -ErrorAction Ignore
+            Copy-Item "$($dir.FullName)\ecosystems" -Destination osx64 -Force -ErrorAction Ignore
 
             # Copy shader folder if it exists
             if (Test-Path "$($dir.FullName)\shader") {
