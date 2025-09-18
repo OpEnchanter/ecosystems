@@ -36,6 +36,13 @@ The graph can be loaded and run with
 python ./plot/main.py
 ```
 
+## Debug mode ❗
+Debug mode gives an ingame look into the inner workings of the simulation.
+
+**Features**
+- Displays stats about organisms above them (ex. traits and stats)
+- Displays organism's pathing target
+
 ## Examples 📃
 These are some examples of environments that have been generated within the simulation.
 ![Island](readme-resources/Island1.png)
