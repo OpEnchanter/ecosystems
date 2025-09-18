@@ -16,6 +16,11 @@ jobs:
         with:
           dotnet-version: '9.0.304'   # Use your .NET version
 
+      - name: Notify ntfy on success
+        if: ${{ success() }}
+        run: |
+          curl -H "Title: ℹ️ Build Started" -d "Project ecosystems build as started" "${{ secrets.NTFY_URL }}"
+
       - name: Restore dependencies
         run: dotnet restore
 
@@ -58,9 +63,9 @@ jobs:
 
 
       - name: Publish MacOS
-        run: dotnet publish -c Release -r osx-x64 --self-contained true -p:PublishSingleFile=true
+        run: dotnet publish -c Release -r osx-x64
 
-      - name: Copy published windows files to osx64 directory
+      - name: Copy published MacOS files to osx64 directory
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path osx64
