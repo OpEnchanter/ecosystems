@@ -304,11 +304,10 @@ unsafe class organism : basicRenderable
         stats.hydration = 0.0f;
         stats.health -= 0.1f;
       }
-
-      if (stats.health <= 0)
-      {
-        Program.renderablesToRemove.Add(this);
-      }
+    }
+    if (stats.health <= 0)
+    {
+      Program.renderablesToRemove.Add(this);
     }
     else if (stats.health < stats.maxHealth)
     {
