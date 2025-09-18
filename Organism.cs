@@ -73,6 +73,10 @@ unsafe class organism : basicRenderable
 
   private Texture generateDebugTex()
   {
+    if (debugTex.id != 0)
+    {
+      Raylib.UnloadTexture(debugTex);
+    }
     Image* img;
     img = (Image*)Raylib.MemAlloc((uint)sizeof(Image));
     *img = Raylib.GenImageColor(256, 512, Raylib.BLANK);
@@ -343,7 +347,6 @@ unsafe class organism : basicRenderable
           debugTex = generateDebugTex();
         }
         Raylib.DrawBillboard(Program.camera, debugTex, position + new Vector3(0.0f, 2.5f - anim, 0.0f), 2.5f, Raylib.RED);
-        //Raylib.DrawCircle3D(position, traits.eyesight, new Vector3(1.0f,0,0), 90.0f, Raylib.RED);
       }
     }
   }
