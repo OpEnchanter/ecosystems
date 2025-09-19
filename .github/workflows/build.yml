@@ -61,39 +61,6 @@ jobs:
         shell: pwsh
         run: Compress-Archive -Path win64/* -DestinationPath win64.zip
 
-
-      - name: Publish MacOS
-        run: dotnet publish -c Release -r osx-x64
-
-      - name: Copy published MacOS files to osx64 directory
-        shell: pwsh
-        run: |
-          New-Item -ItemType Directory -Force -Path osx64
-
-          # Find all publish directories
-          $publishDirs = Get-ChildItem -Path ./bin/Release/net9.0/osx-x64 -Recurse -Directory -Filter publish
-
-          foreach ($dir in $publishDirs) {
-            # Copy all files
-            Copy-Item -Path "$($dir.FullName)\*" -Destination osx64 -Recurse -Force
-
-            # Copy shader folder if it exists
-            if (Test-Path "$($dir.FullName)\shader") {
-              Copy-Item -Path "$($dir.FullName)\shader" -Destination osx64 -Recurse -Force
-            }
-          }
-
-      - name: Upload osx64
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ github.run_number }} osx64
-          path: osx64/**
-
-      - name: Zip the osx64 directory
-        shell: pwsh
-        run: Compress-Archive -Path osx64/* -DestinationPath osx64.zip
-
-
       - name: Create Github Release
         id: create_release
         uses: actions/create-release@v1
@@ -115,14 +82,6 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: win64.zip
-          tag_name: ${{ github.run_number }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload MacOS Release Asset
-        uses: softprops/action-gh-release@v1
-        with:
-          files: osx64.zip
           tag_name: ${{ github.run_number }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
