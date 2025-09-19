@@ -71,8 +71,7 @@ jobs:
             Automated build.
             - Build version: v1.${{ github.run_number }}
 
-            Download the .zip file corresponding to your os.
-            ex. win64 for Windows, osx64 for MacOS.
+            Download the .zip file for your os (ex. win64.zip for Windows).
           draft: false
           prerelease: false
         env:
