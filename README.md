@@ -54,6 +54,8 @@ These are some examples of environments that have been generated within the simu
 2. Unzip the file.
 3. Run the `.exe` (if prompted asking if you want to run the file click more options, then run anyway).
 
+> **Note**: Currently, if you want to use this on Linux or MacOS you will have to compile from source yourself.
+
 ## Compile from source 💾
 
 ### Prerequisites
